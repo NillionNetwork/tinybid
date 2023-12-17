@@ -4,11 +4,23 @@ tinybid
 
 Minimal pure-Python library that implements a basic single-item first-price auction via a `secure multi-party computation protocol <https://eprint.iacr.org/2023/1740>`__.
 
-|pypi|
+|pypi| |readthedocs| |actions| |coveralls|
 
 .. |pypi| image:: https://badge.fury.io/py/tinybid.svg
    :target: https://badge.fury.io/py/tinybid
    :alt: PyPI version and link.
+
+.. |readthedocs| image:: https://readthedocs.org/projects/tinybid/badge/?version=latest
+   :target: https://tinybid.readthedocs.io/en/latest/?badge=latest
+   :alt: Read the Docs documentation status.
+
+.. |actions| image:: https://github.com/nillion-oss/tinybid/workflows/lint-test-cover-docs/badge.svg
+   :target: https://github.com/nillion-oss/tinybid/actions/workflows/lint-test-cover-docs.yml
+   :alt: GitHub Actions status.
+
+.. |coveralls| image:: https://coveralls.io/repos/github/nillion-oss/tinybid/badge.svg?branch=main
+   :target: https://coveralls.io/github/nillion-oss/tinybid?branch=main
+   :alt: Coveralls test coverage summary.
 
 Installation and Usage
 ----------------------
@@ -82,7 +94,7 @@ This library can be published as a `package on PyPI <https://pypi.org/project/ti
 
     python -m pip install .[publish]
 
-Ensure that the correct version number appears in ``pyproject.toml``, and that any links in this README document to the Read the Docs documentation of this package (or its dependencies) have appropriate version numbers. Create and push a tag for this version (replacing ``?.?.?`` with the version number):
+Ensure that the correct version number appears in ``pyproject.toml``, and that any links in this README document to the Read the Docs documentation of this package (or its dependencies) have appropriate version numbers. Also ensure that the Read the Docs project for this library has an `automation rule <https://docs.readthedocs.io/en/stable/automation-rules.html>`__ that activates and sets as the default all tagged versions. Create and push a tag for this version (replacing ``?.?.?`` with the version number):
 
 .. code-block:: bash
 
