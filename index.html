@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>tinybid: Secure Single-Item First-Price Auction</title>
+    <script>
+      var favIcon = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAGFBMVEUAAABHcEwAAAAAAAAAAAAAAAAAAAAAAACpMnD0AAAAB3RSTlNjAL+fpPk8rO4B2AAAADNJREFUGJVjYEQDDIxsLMxwwMIGFGBgRwIMOAVYgQBZgAlkHNMgEwB6joUB7E8WiOfQAADiPANLertncwAAAABJRU5ErkJggg==";
+      var docHead = document.getElementsByTagName('head')[0];
+      var newLink = document.createElement('link');
+      newLink.rel = 'shortcut icon';
+      newLink.type = 'image/x-icon';
+      newLink.href = 'data:image/png;base64,'+favIcon;
+      docHead.appendChild(newLink);
+    </script>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@300;400;500;700" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.4.2/css/all.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <style>
+      html { height:100vh; }
+      body { display:flex; flex-direction:column; min-height:100vh; padding:0px 0px 0px 0px; font-family:'Cabin',sans-serif; }
+      @media (min-width: 768px) { html { font-size:16px; } }
+      a { color:#0000FF; font-weight:bold; text-decoration:none; }
+      a:hover { text-decoration:none; color:#000000; }
+      #header { min-height:100px; margin-top:60px; margin-bottom:20px; }
+      .space { margin-top:30px; }
+      hr { height:1px !important; margin:0px; border-top:1px solid #000000 !important; opacity:1; }
+      h1 { text-align:left; }
+      h2 { margin-top:10px; line-height:21px; font-size:18px; font-weight:normal; }
+      h3 {
+        width:100%;
+        margin-bottom:0px;
+        padding:0px 0px 6px 0px;
+        text-align:left;
+        white-space:nowrap;
+        font-size:20px;
+      }
+      .container > .row { margin-bottom:8px; }
+      .grid-row { display:grid; grid-auto-rows:auto; grid-row-gap:0px; grid-column-gap:0px; }
+      .grid-row-clients { grid-template-columns:3fr 2.25fr 2.25fr 2.25fr 2.25fr; }
+      .grid-row-connectors { grid-template-columns:3fr 9fr; }
+      .grid-row-nodes { grid-template-columns:3fr 3fr 3fr 3fr; }
+      .grid-row-result { grid-template-columns:3fr 9fr; }
+      .grid-col { padding:0px 6px 0px 6px; }
+      .guide > ol > li { margin-left:8px; font-size:42px; font-weight:bold; }
+      .guide > ol > li > div {
+        position:relative;
+        top:-16px;
+        padding-right:8px;
+        line-height:21px; 
+        font-size:18px; font-weight:normal;
+      }
+      .content { height:100%; width:100%; margin:0px 10px 0px 0px; padding:0px 10px 0px 10px; text-align:left; }
+      .entity { height:100%; margin-top:0px; padding:20px 24px 20px 24px; border:1px solid #000000; }
+      .client-ui-table { display:table; height:100%; width:100%; }
+      .client-ui-table-row { display:table-row; }
+      .client-ui-table-cell { display:table-cell; }
+      .bid-price { font-weight:bold; color:#0000FF; }
+      .ui-slider {
+          margin:16px 0px 16px 0px;
+          width:20px;
+          height:100px;
+      }
+      .ui-slider-range { background-color:#0000FF; }
+      .ui-slider .ui-slider-handle { font-size:30px; }
+      .ui-slider .ui-state-hover { background-color:#0000FF; }
+      .ui-slider .ui-state-active { background-color:#0000FF; }
+      .node { height:100%; }
+      .node > h3 { background-color:#00003F; color:#FFFFFF; }
+      .node > .entity { border-top:1px solid #FFFFFF; background-color:#00003F; color:#FFFFFF; }
+      .node-internal-title { display:none; }
+      .activated > h3 { background-color:#000000; color:#FFFFFF; }
+      .activated > .entity { border-top:1px solid #FFFFFF; background-color:#000000; color:#FFFFFF; }
+      .client { height:100%; }
+      .client > .row { }
+      .client > .row > .col { }
+      .box-title {
+        width:100%;
+        margin-top:16px;
+        margin-bottom:10px;
+        text-align:center;
+        font-size:14px;
+        font-weight:bold;
+        line-height:16px !important;
+      }
+      .action { margin-top:20px; }
+      button {
+        width:100%;
+        margin:0px 2px 2px 0px;
+        -webkit-box-shadow: 2px 2px 0px 0px #555555;
+        -moz-box-shadow: 2px 2px 0px 0px #555555;
+        box-shadow: 2px 2px 0px 0px #555555;
+        padding:8px;
+        border:0px solid #000000;
+        background-color:#0000FF;
+        color:#FFFFFF;
+      }
+      button:hover { background-color:#000000; }
+      button:active {
+        margin:2px 0px 0px 2px;
+        -webkit-box-shadow: 0px 0px 0px 0px #555555;
+        -moz-box-shadow: 0px 0px 0px 0px #555555;
+        box-shadow: 0px 0px 0px 0px #555555;
+      }
+      button:disabled { background-color:#CCCCCC; color:#777777; }
+      #result-bar {
+        min-width:10%;
+        margin-top:0px;
+        padding:0px 20px 20px 20px;
+        background-color:#FFFFFF;
+        text-align:center;
+        line-height:36px;
+        font-size:32px;
+        color:#FFFFFF;
+      }
+      .grid-row-connectors .grid-col { height:100px; }
+      canvas { width:100%; height:100px; }
+      .card-deck .card { border:0px; min-width:220px; }
+      .card { min-width:350px !important; }
+      .card-body { padding:2px 10px 2px 10px; line-height:18px; font-size:14px; }
+      footer { width:100%; margin:auto auto 0 auto; padding:16px 0px 16px 0px; background-color:#0000FF; color:#FFFFFF; }
+      footer a { color:#FFFFFF; }
+      footer a:hover { color:#FFFFFF; }
+      footer .card-deck { margin-bottom:0px !important; }
+      footer .card { margin-bottom:0px !important; border:0px; background-color:#0000FF; }
+      footer .card-body-items { padding:8px 20px 0px 20px; }
+      footer .card-body-items-left { float:left; }
+      footer .card-body-items-right { float:right; }
+      footer .card-deck-copyright { height:26x !important; font-size:10px; }
+      footer .card-copyright { height:26px !important; padding:0px 16px 0px 16px; font-size:12px !important; }
+      footer .license-phrase { color:#FFFFFF; }
+      footer .item { margin:0px 25px 0px 0px; white-space: nowrap; font-size:14px; }
+      footer .icon { margin:0px 15px 0px 0px; font-size:20px; }
+      footer .icon-last { margin:0px 0px 0px 0px; font-size:18px; }
+      .noselect {
+        -webkit-touch-callout:none; /* iOS Safari */
+          -webkit-user-select:none; /* Safari */
+           -khtml-user-select:none; /* Konqueror HTML */
+             -moz-user-select:none; /* Old versions of Firefox */
+              -ms-user-select:none; /* Internet Explorer/Edge */
+                  user-select:none; /* Non-prefixed version, currently
+                                       supported by Chrome, Edge, Opera and Firefox */
+      }
+      @media all and (max-width:991px) {
+        .client { padding:10px; }
+        h3 { font-size:14px; }
+      }
+      @media all and (max-width:767px) {
+        .entity { padding:10px; }
+        .content { padding:0px; }
+        .guide > ol { margin-left:-12px; }
+        .guide > ol > li { font-size:26px; }
+        .guide > ol > li > div {
+          top:-10px;
+          padding-right:0px;
+          line-height:14px;
+          font-size:12px;
+        }
+        h3 { font-size:14px; }
+        .box-title { font-size:12px; }
+        .node-internal-title { line-height:8px !important; font-size:6px; }
+        button { font-size:14px; }
+        #result-bar { line-height:28px; font-size:24px; }
+      }
+      @media all and (max-width:618px) {
+        #header { margin-top:50px; }
+        #license-phrase { /* display:none; */ }
+      }
+      @media all and (max-width:575px) {
+        button { line-height:12px !important; font-size:10px; }
+        #result-bar { margin-bottom:20px; line-height:22px; font-size:18px; }
+      }
+      @media all and (max-width:400px) {
+        .card { min-width:250px !important; }
+      }
+      @media all and (max-width:320px) { }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="header">
+      <div class="card-deck mb-3">
+        <div class="card mb-4">
+          <div class="card-body">
+            <h1><b>tinybid</b>: Secure Single-Item First-Price Auction</h1>
+            <hr/>
+            <h2>
+              This secure single-item first-price auction demo simulates a secure multi-party computation (MPC) protocol <b>entirely in your browser</b> by importing and invoking the <a href="https://github.com/nillion-oss/tinybid">tinybid</a> and underlying <a href="https://github.com/nillion-oss/tinynmc">tinynmc</a> libraries using <a href="https://pyscript.net">PyScript</a>.
+            </h2>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="grid-row grid-row-clients">
+        <div class="grid-col">
+          <div class="guide">
+            <div class="guide">
+              <ol start="1">
+                <li>
+                  <div>
+                    For each bidder, use the slider to choose a bid value and then click <b>Bid</b>. The bids are encoded as vectors, masks are requested from the nodes, and the masked vectors are broadcast to all the nodes.
+                  </div>
+                </li>
+              </ol>
+            </div>
+          </div>
+        </div>
+        <div class="grid-col">
+          <div class="content">
+            <div class="entity client">
+              <div class="client-ui-table">
+                <div class="client-ui-table-row">
+                  <h3>Bidder 1</h3>
+                </div>
+                <div class="client-ui-table-row">
+                  <div class="client-ui-table-cell" style="vertical-align:top;">
+                    <div class="row">
+                      <div class="col" style="text-align:center;">
+                        <div id="bid-slider-1-value" class="box-title bid-price noselect"></div>
+                        <div id="bid-slider-1" style="display:inline-block"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="client-ui-table-row">
+                  <div class="client-ui-table-cell" style="vertical-align:bottom;">
+                    <div class="row row-cols-1 action">
+                      <div class="col" style="text-align:center;">
+                        <button id="bid-1" style="width:50px;">Bid</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="grid-col">
+          <div class="content">
+            <div class="entity client">
+              <div class="client-ui-table">
+                <div class="client-ui-table-row">
+                  <h3>Bidder 2</h3>
+                </div>
+                <div class="client-ui-table-row">
+                  <div class="client-ui-table-cell" style="vertical-align:top;">
+                    <div class="row">
+                      <div class="col" style="text-align:center;">
+                        <div id="bid-slider-2-value" class="box-title bid-price noselect"></div>
+                        <div id="bid-slider-2" style="display:inline-block"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="client-ui-table-row">
+                  <div class="client-ui-table-cell" style="vertical-align:bottom;">
+                    <div class="row row-cols-1 action">
+                      <div class="col" style="text-align:center;">
+                        <button id="bid-2" style="width:50px;">Bid</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="grid-col">
+          <div class="content">
+            <div class="entity client">
+              <div class="client-ui-table">
+                <div class="client-ui-table-row">
+                  <h3>Bidder 3</h3>
+                </div>
+                <div class="client-ui-table-row">
+                  <div class="client-ui-table-cell" style="vertical-align:top;">
+                    <div class="row">
+                      <div class="col" style="text-align:center;">
+                        <div id="bid-slider-3-value" class="box-title bid-price noselect"></div>
+                        <div id="bid-slider-3" style="display:inline-block"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="client-ui-table-row">
+                  <div class="client-ui-table-cell" style="vertical-align:bottom;">
+                    <div class="row row-cols-1 action">
+                      <div class="col" style="text-align:center;">
+                        <button id="bid-3" style="width:50px;">Bid</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="grid-col">
+          <div class="content">
+            <div class="entity client">
+              <div class="client-ui-table">
+                <div class="client-ui-table-row">
+                  <h3>Bidder 4</h3>
+                </div>
+                <div class="client-ui-table-row">
+                  <div class="client-ui-table-cell" style="vertical-align:top;">
+                    <div class="row">
+                      <div class="col" style="text-align:center;">
+                        <div id="bid-slider-4-value" class="box-title bid-price noselect"></div>
+                        <div id="bid-slider-4"  style="display:inline-block"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="client-ui-table-row">
+                  <div class="client-ui-table-cell" style="vertical-align:bottom;">
+                    <div class="row row-cols-1 action">
+                      <div class="col" style="text-align:center;">
+                        <button id="bid-4" style="width:50px;">Bid</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-row grid-row-connectors">
+        <div class="grid-col"></div>
+        <div class="grid-col">
+          <canvas id="canvas-bids-to-nodes"></canvas>
+        </div>
+      </div>
+      <div class="grid-row grid-row-nodes">
+        <div class="grid-col">
+          <div class="guide" id="step-nodes" style="opacity:0.2;">
+            <ol start="2">
+              <li>
+                <div>
+                  Each node receives the masked vectors corresponding to the four bids, and then locally computes its secret share of the overall result vector.
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+        <div class="grid-col">
+          <div class="content node" id="panel-node-one" style="opacity:0.2;">
+            <div class="entity">
+              <h3>Node 1</h3>
+              <div class="row row-cols-1">
+                <div class="col-xs-6" style="text-align:center;">
+                  <div class="box-title noselect node-internal-title">Masked Bids</div>
+                  <canvas id="node-one-bids" style="width:100%; height:50px;"></canvas>
+                  <div class="box-title noselect node-internal-title">Secret Share of Outcome</div>
+                  <canvas id="node-one-share" style="width:100%; height:50px;"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="grid-col">
+          <div class="content node" id="panel-node-two" style="opacity:0.2;">
+            <div class="entity">
+              <h3>Node 2</h3>
+              <div class="row row-cols-1">
+                <div class="col-xs-6">
+                  <div class="box-title noselect node-internal-title">Masked Bids</div>
+                  <canvas id="node-two-bids" style="width:100%; height:50px;"></canvas>
+                  <div class="box-title noselect node-internal-title">Secret Share of Outcome</div>
+                  <canvas id="node-two-share" style="width:100%; height:50px;"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="grid-col">
+          <div class="content node" id="panel-node-three" style="opacity:0.2;">
+            <div class="entity">
+              <h3>Node 3</h3>
+              <div class="row row-cols-1">
+                <div class="col-xs-6">
+                  <div class="box-title noselect node-internal-title">Masked Bids</div>
+                  <canvas id="node-three-bids" style="width:100%; height:50px;"></canvas>
+                  <div class="box-title noselect node-internal-title">Secret Share of Outcome</div>
+                  <canvas id="node-three-share" style="width:100%; height:50px;"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-row grid-row-connectors">
+        <div class="grid-col"></div>
+        <div class="grid-col">
+          <canvas id="canvas-nodes-to-output"></canvas>
+        </div>
+      </div>
+      <div class="grid-row grid-row-result">
+        <div class="grid-col">
+          <div class="guide" id="step-output" style="opacity:0.2;">
+            <ol start="3">
+              <li>
+                <div>
+                  The auction operator receives the secret shares of the result vector from each node and reconstructs it to determine the winner and their bid.
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+        <div class="grid-col">
+          <div class="content" id="panel-output" style="opacity:0.2;">
+            <div class="entity">
+              <div style="display:table; height:100%; width:100%;">
+                <div style="display:table-row;">
+                  <h3>Network Output</h3>
+                </div>
+                <div style="display:table-row;">
+                  <div style="display:table-cell; width:100%; vertical-align:middle;">
+                    <div id="result-bar"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="space"></div>
+    <footer>
+      <div class="container noselect">
+        <div class="card-deck mb-3">
+          <div class="card mb-4">
+            <div class="card-body card-body-items">
+              <div class="card-body-items-left">
+                <span class="item"><span class="license-phrase">Made available under the </span><a href="https://opensource.org/license/mit/">MIT License</a></span>
+              </div>
+              <div class="card-body-items-right">
+                <span class="icon"><a href="mailto:engineering@nillion.com"><i class="far fa-envelope"></i></a></span>
+                <span class="icon-last"><a href="https://github.com/nillion-oss"><i class="fab fa-github"></i></a></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-deck mb-3 card-deck-copyright">
+          <div class="card mb-4 card-copyright"></div>
+        </div>
+      </div>
+    </footer>
+    <py-config>
+      packages = ["bitlist", "tinynmc"]
+    </py-config>
+    <py-script src="https://raw.githubusercontent.com/nillion-oss/tinybid/main/src/tinybid/tinybid.py"></py-script>
+    <section class="pyscript">
+      <py-script>
+        from pyodide.ffi import create_proxy
+        import js
+
+        bids = [None, None, None, None]
+
+        def show_contribution(data):
+            lines = []            
+            global broadcast
+            broadcast = [((256 * int(v)) // v.modulus) for (_, v) in data.items()]
+            js.showToken()
+
+        def run_if_ready():
+            global bids
+            if all(bid is not None for bid in bids):
+                shares = [node.outcome(bids) for node in nodes]
+                result = list(sorted(reveal(shares)))
+                js.outputEnable()
+                js.document.getElementById('result-bar').style.color = '#000000'
+                js.document.getElementById('result-bar').style.backgroundColor = '#FFFFFF'
+                js.document.getElementById('result-bar').style.width = '100%'
+                js.document.getElementById('result-bar').innerHTML = \
+                    'Winning bidders: ' + (', '.join(map(str, result))) + '.'
+
+        def make_bid_handler(identifier):
+
+            def bid_handler(_):
+                request_ = request(identifier=identifier)
+                masks = [node.masks(request_) for node in nodes]
+                price = js.getBid(identifier)
+                global bids
+                bids[identifier - 1] = bid(masks, price)
+                js.document.getElementById('bid-' + str(identifier)).disabled = True
+                js.sliderDisable('bid-slider-' + str(identifier))
+                js.connectorsBidsToNodes()
+                js.nodesEnable()
+                run_if_ready()
+
+            return bid_handler
+
+        nodes = [node(), node(), node()]
+        preprocess(nodes, price=15) # This maximum *price*...
+        for identifier in [1, 2, 3, 4]:
+            js.document.getElementById('bid-' + str(identifier)).addEventListener(
+                'click',
+                create_proxy(make_bid_handler(identifier))
+            )
+      </py-script>
+      <input id="active" type="hidden" value="none"/>
+    </section>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous">
+    </script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" 
+            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
+    </script>
+    <script>
+      let bids = [0, 0, 0, 0];
+      let bidStatus = [false, false, false, false];
+      let bidsSubmitted = false;
+
+      const canvas_bids_to_nodes = document.getElementById("canvas-bids-to-nodes");
+      const context_bids_to_nodes = canvas_bids_to_nodes.getContext("2d");
+      const canvas_nodes_to_output = document.getElementById("canvas-nodes-to-output");
+      const context_nodes_to_output = canvas_nodes_to_output.getContext("2d");
+
+      function vertical(context, x1, y1, x2, y2, color) {
+        context.fillStyle = color;
+        context.fillRect(x1 - 1, y1, x2 - x1 + 2, y2 - y1);
+      }
+
+      function horizontal(context, x1, y1, x2, y2, color) {
+        context.fillStyle = color;
+        context.fillRect(x1 - 1, y1 - 2, x2 - x1 + 2, y2 - y1 + 4);
+      }
+
+      function connectorsBidsToNodes() {
+        if (bidStatus[0] || bidStatus[1] || bidStatus[2] || bidStatus[3]) {
+          let w = canvas_bids_to_nodes.width, h = canvas_bids_to_nodes.height;
+          const offset = 0;
+          if (bidStatus[0]) {
+            vertical(context_bids_to_nodes, (1*w)/8 + offset, 0, (1*w)/8 + offset, (3*h)/4, "#000000");
+          }
+          if (bidStatus[1]) {
+            vertical(context_bids_to_nodes, (3*w)/8 + offset, 0, (3*w)/8 + offset, (3*h)/4, "#000000");
+          }
+          if (bidStatus[2]) {
+            vertical(context_bids_to_nodes, (5*w)/8 + offset, 0, (5*w)/8 + offset, (3*h)/4, "#000000");
+          }
+          if (bidStatus[3]) {
+            vertical(context_bids_to_nodes, (7*w)/8 + offset, 0, (7*w)/8 + offset, (3*h)/4, "#000000");
+          }
+          horizontal(context_bids_to_nodes, w/10 + offset, (3*h)/4, (9*w)/10 + offset, (3*h)/4, "#000000");
+          vertical(context_bids_to_nodes, w/2 + offset, (3*h)/4, w/2 + offset, h, "#000000");
+          vertical(context_bids_to_nodes, w/10 + offset, (3*h)/4, w/10 + offset, h, "#000000");
+          vertical(context_bids_to_nodes, (9*w)/10 + offset, (3*h)/4, (9*w)/10 + offset, h, "#000000");
+        }
+      }
+
+      function connectorsNodesToOutput() {
+        if (bidsSubmitted) {
+          canvas_nodes_to_output.width = canvas_nodes_to_output.offsetWidth;
+          w = canvas_nodes_to_output.width, h = canvas_nodes_to_output.height;
+
+          vertical(context_nodes_to_output, w/2, 0, w/2, h/2, "#0000FF");
+          vertical(context_nodes_to_output, w/6, 0, w/6, h/2, "#0000FF");
+          vertical(context_nodes_to_output, (5*w)/6, 0, (5*w)/6, h/2, "#0000FF");
+          horizontal(context_nodes_to_output, w/6, h/2, (5*w)/6, h/2, "#0000FF");
+          vertical(context_nodes_to_output, w/2, h/2, w/2, h, "#0000FF");
+        }
+      }
+
+      function nodesEnable() {
+        connectorsNodesToOutput();
+        [
+          "step-nodes", "panel-node-one", "panel-node-two", "panel-node-three"
+        ].map(function(elementId) {
+          document.getElementById(elementId).style.opacity = 1;
+        });
+      }
+
+      function outputEnable() {
+        bidsSubmitted = true;
+        connectorsNodesToOutput();
+        [
+          "step-output", "panel-output"
+        ].map(function(elementId) {
+          document.getElementById(elementId).style.opacity = 1;
+        });
+      }
+
+      /*function showTokenAtNode(nodeName, regOrAuth) {
+        let share = Array.from(pyscript.interpreter.globals.get("broadcast"));
+        let canvas = document.getElementById("node-" + nodeName + "-" + regOrAuth + "-token");
+        let context = canvas.getContext("2d");
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        let w = canvas.width, h = canvas.height;
+        let pixelWidth = (h / 8) * 2.7 * (1.6 * canvas.width / 242), pixelHeight = 6;
+        let opacity = (regOrAuth == 'reg') ? 1 : 0.4;
+        for (let i = 0; i < share.length; i++) {
+          context.fillStyle = "rgba(255, 255, 255, " + (opacity * (share[i] / 256)) + ")";
+          context.fillRect(
+            Math.round(i / 16) * pixelWidth,
+            (i % 8) * pixelHeight,
+            pixelWidth,
+            pixelHeight
+          );
+        }
+      }
+
+      function showToken(regOrAuth) {
+        $(".node-" + regOrAuth + "-title").show();
+        showTokenAtNode("one", regOrAuth);
+        showTokenAtNode("two", regOrAuth);
+        showTokenAtNode("three", regOrAuth);
+      }*/
+
+      function sliderDisable(identifier) {
+        $("#" + identifier).slider("disable");
+      }
+
+      function getBid(identifier) {
+        bidStatus[identifier - 1] = true;
+        return bids[identifier - 1];
+      }
+
+      async function initialize() {
+        for (let bidderIndex = 1; bidderIndex <= 4; bidderIndex++) {
+          const value = Math.floor(Math.random() * 16);
+          bids[bidderIndex - 1] = value;
+          document.getElementById("bid-slider-" + bidderIndex + "-value").innerHTML = value;
+          $(function() {
+            $("#bid-slider-" + bidderIndex).slider({
+              orientation: "vertical",
+              range: "min",
+              min: 0,
+              max: 15,
+              value: value,
+              slide: function(event, ui) {
+                document.getElementById("bid-slider-" + bidderIndex + "-value").innerHTML = ui.value;
+                bids[bidderIndex - 1] = ui.value;
+              }
+            });
+          });
+        }
+      }
+
+      function resize() {
+        connectorsBidsToNodes();
+        connectorsNodesToOutput();
+      }
+
+      window.onload = initialize;
+      window.onresize = resize;
+    </script>
+  </body>
+</html>
