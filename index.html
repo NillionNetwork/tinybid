@@ -162,7 +162,7 @@
         }
         h3 { font-size:14px; }
         .box-title { font-size:12px; }
-        .node-internal-title { line-height:8px !important; font-size:6px; }
+        .node-internal-title { line-height:8px !important; font-size:8px; }
         button { font-size:14px; }
         #result-bar { line-height:28px; font-size:24px; }
       }
@@ -354,10 +354,10 @@
               <h3>Node 1</h3>
               <div class="row row-cols-1">
                 <div class="col-xs-6" style="text-align:center;">
-                  <div class="box-title noselect node-internal-title">Masked Bids</div>
-                  <canvas id="node-one-bids" style="width:100%; height:50px;"></canvas>
-                  <div class="box-title noselect node-internal-title">Secret Share of Outcome</div>
-                  <canvas id="node-one-share" style="width:100%; height:50px;"></canvas>
+                  <div class="box-title noselect node-internal-title" id="node-one-bids-title">Masked Bids</div>
+                  <canvas id="node-one-bids" style="width:100%; height:25px;"></canvas>
+                  <div class="box-title noselect node-internal-title" id="node-one-share-title">Secret Share of Outcome</div>
+                  <canvas id="node-one-share" style="width:100%; height:25px;"></canvas>
                 </div>
               </div>
             </div>
@@ -369,10 +369,10 @@
               <h3>Node 2</h3>
               <div class="row row-cols-1">
                 <div class="col-xs-6">
-                  <div class="box-title noselect node-internal-title">Masked Bids</div>
-                  <canvas id="node-two-bids" style="width:100%; height:50px;"></canvas>
-                  <div class="box-title noselect node-internal-title">Secret Share of Outcome</div>
-                  <canvas id="node-two-share" style="width:100%; height:50px;"></canvas>
+                  <div class="box-title noselect node-internal-title" id="node-two-bids-title">Masked Bids</div>
+                  <canvas id="node-two-bids" style="width:100%; height:25px;"></canvas>
+                  <div class="box-title noselect node-internal-title" id="node-two-share-title">Secret Share of Outcome</div>
+                  <canvas id="node-two-share" style="width:100%; height:25px;"></canvas>
                 </div>
               </div>
             </div>
@@ -384,10 +384,10 @@
               <h3>Node 3</h3>
               <div class="row row-cols-1">
                 <div class="col-xs-6">
-                  <div class="box-title noselect node-internal-title">Masked Bids</div>
-                  <canvas id="node-three-bids" style="width:100%; height:50px;"></canvas>
-                  <div class="box-title noselect node-internal-title">Secret Share of Outcome</div>
-                  <canvas id="node-three-share" style="width:100%; height:50px;"></canvas>
+                  <div class="box-title noselect node-internal-title"id="node-three-bids-title">Masked Bids</div>
+                  <canvas id="node-three-bids" style="width:100%; height:25px;"></canvas>
+                  <div class="box-title noselect node-internal-title"id="node-three-share-title">Secret Share of Outcome</div>
+                  <canvas id="node-three-share" style="width:100%; height:25px;"></canvas>
                 </div>
               </div>
             </div>
@@ -473,12 +473,15 @@
             if all(bid is not None for bid in bids):
                 shares = [node.outcome(bids) for node in nodes]
                 result = list(sorted(reveal(shares)))
+                js.showShareAtNode('one')
+                js.showShareAtNode('two')
+                js.showShareAtNode('three')
                 js.outputEnable()
                 js.document.getElementById('result-bar').style.color = '#000000'
                 js.document.getElementById('result-bar').style.backgroundColor = '#FFFFFF'
                 js.document.getElementById('result-bar').style.width = '100%'
                 js.document.getElementById('result-bar').innerHTML = \
-                    'Winning bidders: ' + (', '.join(map(str, result))) + '.'
+                    'Winning bidder(s): ' + (', '.join(map(str, result))) + '.'
 
         def make_bid_handler(identifier):
 
@@ -492,6 +495,9 @@
                 js.sliderDisable('bid-slider-' + str(identifier))
                 js.connectorsBidsToNodes()
                 js.nodesEnable()
+                js.showBidsAtNode('one')
+                js.showBidsAtNode('two')
+                js.showBidsAtNode('three')
                 run_if_ready()
 
             return bid_handler
@@ -588,32 +594,48 @@
         });
       }
 
-      /*function showTokenAtNode(nodeName, regOrAuth) {
-        let share = Array.from(pyscript.interpreter.globals.get("broadcast"));
-        let canvas = document.getElementById("node-" + nodeName + "-" + regOrAuth + "-token");
+      function showBidsAtNode(nodeName) {
+        $("#node-" + nodeName + "-bids-title").show();
+        //let share = Array.from(pyscript.interpreter.globals.get("broadcast"));
+        let canvas = document.getElementById("node-" + nodeName + "-bids");
         let context = canvas.getContext("2d");
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
         let w = canvas.width, h = canvas.height;
-        let pixelWidth = (h / 8) * 2.7 * (1.6 * canvas.width / 242), pixelHeight = 6;
-        let opacity = (regOrAuth == 'reg') ? 1 : 0.4;
-        for (let i = 0; i < share.length; i++) {
-          context.fillStyle = "rgba(255, 255, 255, " + (opacity * (share[i] / 256)) + ")";
-          context.fillRect(
-            Math.round(i / 16) * pixelWidth,
-            (i % 8) * pixelHeight,
-            pixelWidth,
-            pixelHeight
-          );
+        let pixelWidth = (h / 16) * 6 * (1.6 * canvas.width / 242), pixelHeight = 6;
+        let opacity = 1;
+        for (let row = 0; row < 4; row++) {
+          for (let i = 0; i < 16; i++) {
+            context.fillStyle = (
+              "rgba(255, 255, 255, " +
+              (opacity * ((bidStatus[row] ? 1 : 0) * Math.random())) +
+              ")"
+            );
+            context.fillRect(
+              i * pixelWidth,
+              row * pixelHeight,
+              pixelWidth,
+              pixelHeight
+            );
+          }
         }
       }
 
-      function showToken(regOrAuth) {
-        $(".node-" + regOrAuth + "-title").show();
-        showTokenAtNode("one", regOrAuth);
-        showTokenAtNode("two", regOrAuth);
-        showTokenAtNode("three", regOrAuth);
-      }*/
+      function showShareAtNode(nodeName) {
+        $("#node-" + nodeName + "-share-title").show();
+        //let share = Array.from(pyscript.interpreter.globals.get("broadcast"));
+        let canvas = document.getElementById("node-" + nodeName + "-share");
+        let context = canvas.getContext("2d");
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        let w = canvas.width, h = canvas.height;
+        let pixelWidth = (h / 16) * 6 * (1.6 * canvas.width / 242), pixelHeight = 6;
+        let opacity = 1;
+        for (let i = 0; i < 16; i++) {
+          context.fillStyle = "rgba(255, 255, 255, " + (opacity * (Math.random())) + ")";
+          context.fillRect(i * pixelWidth, 0, pixelWidth, pixelHeight);
+        }
+      }
 
       function sliderDisable(identifier) {
         $("#" + identifier).slider("disable");
