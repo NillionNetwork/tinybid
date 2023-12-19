@@ -11,7 +11,7 @@ from modulo import modulo
 from bitlist import bitlist
 import tinynmc
 
-class node(tinynmc.node):
+class node:
     """
     Data structure for maintaining the information associated with a node
     and performing node operations.
@@ -23,12 +23,13 @@ class node(tinynmc.node):
     >>> nodes = [node(), node(), node()]
 
     The preprocessing phase that the nodes must execute can be simulated using
-    the :obj:`preprocess` function. It is assumed that all permitted bid prices
-    fall within a finite range of integers from ``0`` to some fixed maximum
-    price. This maximum value must be supplied as the second argument to the
+    the :obj:`preprocess` function. The number of bids that a workflow requires
+    must be known, and it is assumed that all permitted bid prices are integers
+    greater than or equal to ``0`` and strictly less than a fixed maximum value.
+    The number of bids and the number of distinct prices must be supplied to the
     :obj:`preprocess` function.
 
-    >>> preprocess(nodes, price=15)
+    >>> preprocess(nodes, bids=4, prices=16)
 
     Each bidder must then submit a request for the opportunity to submit a bid.
     The bidders can create :obj:`request` instances for this purpose. In the
@@ -83,9 +84,9 @@ class node(tinynmc.node):
 
         :param request: Request from bidder.
         """
-        return [
-            tinynmc.node.masks(self, request)
-            for _ in range(self._price + 1) # pylint: disable=no-member
+        return [ # pylint: disable=no-member
+            tinynmc.node.masks(self._nodes[i], request)
+            for i in range(self._prices) # pylint: disable=no-member
         ]
 
     def outcome(self: node, bids: Sequence[bid]) -> List[modulo]:
@@ -94,12 +95,13 @@ class node(tinynmc.node):
 
         :param bids: Sequence of masked bids.
         """
-        return [
-            self.compute(
+        prices = len(bids[0])
+        return [ # pylint: disable=no-member
+            self._nodes[i].compute(
                 getattr(self, '_signature'),
                 [bid[i] for bid in bids]
             )
-            for i in range(len(bids[0]))
+            for i in range(prices)
         ]
 
 class request(List[Tuple[int, int]]):
@@ -134,7 +136,7 @@ class bid(List[Dict[Tuple[int, int], modulo]]):
         below.
 
         >>> nodes = [node(), node(), node()]
-        >>> preprocess(nodes, 15)
+        >>> preprocess(nodes, 4, 16)
         >>> identifier = 2
         >>> price = 7
         >>> masks = [node.masks(request(identifier)) for node in nodes]
@@ -146,7 +148,8 @@ class bid(List[Dict[Tuple[int, int], modulo]]):
         True
         """
         modulus = list(masks[0][0].values())[0].modulus
-        for i in range(len(masks[0])):
+        prices = len(masks[0])
+        for i in range(prices):
             masks_i = [mask[i] for mask in masks]
             key = list(masks_i[0].keys())[0]
             identifier = key[1] + 1
@@ -161,24 +164,37 @@ class bid(List[Dict[Tuple[int, int], modulo]]):
             )
             self.append(tinynmc.masked_factors(coordinate_to_value, masks_i))
 
-def preprocess(nodes: Sequence[node], price: int):
+def preprocess(nodes: Sequence[node], bids: int, prices: int):
     """
-    Simulate a preprocessing phase among the collection of nodes for a workflow
-    that supports registration and authentication descriptor vectors of the
-    specified length.
+    Simulate a preprocessing phase among the supplied nodes for a workflow that
+    supports the specified number of bids and distinct prices (where prices are
+    assumed to be integers greater than or equal to ``0`` and strictly less than
+    the value ``prices``).
 
     :param nodes: Collection of nodes involved in the workflow.
-    :param price: Integer representing the maximum permitted bid price.
+    :param bids: Number of bids.
+    :param prices: Number of distinct prices (from ``0`` to ``prices``).
 
     >>> nodes = [node(), node(), node()]
-    >>> preprocess(nodes, price=15)
+    >>> preprocess(nodes, bids=4, prices=16)
     """
-    signature = [4]
-    tinynmc.preprocess(signature, nodes)
+    signature = [bids]
+
     for node_ in nodes:
         setattr(node_, '_signature', signature)
-        setattr(node_, '_price', price)
+        setattr(node_, '_prices', prices)
         setattr(node_, '_bids', [])
+        setattr(node_, '_nodes', [
+            tinynmc.node()
+            for _ in range(prices)
+        ])
+
+    for i in range(prices):
+        # pylint: disable=protected-access
+        tinynmc.preprocess(
+            signature,
+            [node_._nodes[i] for node_ in nodes]
+        )
 
 def reveal(shares: List[List[modulo]]) -> Set[int]:
     """
@@ -187,7 +203,8 @@ def reveal(shares: List[List[modulo]]) -> Set[int]:
     :param shares: Outcome shares (where each share is a list of components,
         with one component per permitted price).
     """
-    for i in reversed(range(len(shares[0]))):
+    prices = len(shares[0])
+    for i in reversed(range(prices)):
         shares_i = [share_vector[i] for share_vector in shares]
         bits = bitlist(int(sum(shares_i)).bit_length() - 1, length=5)[:-1]
         outcome = {
