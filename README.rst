@@ -96,7 +96,7 @@ Every bidder can broadcast its masked bid to all the nodes. Each node can locall
     ... ]
 
 .. |set| replace:: ``set``
-.. _set: https://docs.python.org/3/library/functions.html#set
+.. _set: https://docs.python.org/3/library/functions.html#func-set
 
 .. |int| replace:: ``int``
 .. _int: https://docs.python.org/3/library/functions.html#int
