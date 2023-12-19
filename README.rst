@@ -38,6 +38,74 @@ The library can be imported in the usual way:
     import tinybid
     from tinybid import *
 
+Basic Example
+^^^^^^^^^^^^^
+
+Suppose that a workflow is supported by three nodes (parties performing a decentralized auction). The :obj:`node` objects would be instantiated locally by each of these three parties:
+
+.. code-block:: python
+
+    >>> nodes = [node(), node(), node()]
+
+The preprocessing workflow that the nodes must execute can be simulated. The number of bids that a workflow requires must be known, and it is assumed that all permitted bid prices are integers greater than or equal to ``0`` and strictly less than a fixed maximum value. The number of bids and the number of distinct prices must be known during preprocessing:
+
+.. code-block:: python
+
+    >>> preprocess(nodes, bids=4, prices=16)
+
+Each bidder must submit a request for the opportunity to submit a bid. Below, each of the four bidders creates such a request:
+
+.. code-block:: python
+
+    >>> request_zero = request(identifier=0)
+    >>> request_one = request(identifier=1)
+    >>> request_two = request(identifier=2)
+    >>> request_three = request(identifier=3)
+
+Each bidder can deliver a request to each node, and each node can then locally to generate masks that can be returned to the requesting bidder:
+
+.. code-block:: python
+
+    >>> masks_zero = [node.masks(request_zero) for node in nodes]
+    >>> masks_one = [node.masks(request_one) for node in nodes]
+    >>> masks_two = [node.masks(request_two) for node in nodes]
+    >>> masks_three = [node.masks(request_three) for node in nodes]
+
+.. |bid| replace:: ``bid``
+.. _bid: https://tinybid.readthedocs.io/en/0.1.0/_source/tinybid.html#tinybid.tinybid.bid
+
+Each bidder can then generate locally a |bid|_ instance (*i.e.*, a masked bid price):
+
+.. code-block:: python
+
+    >>> bid_zero = bid(masks_zero, 7)
+    >>> bid_one = bid(masks_one, 11)
+    >>> bid_two = bid(masks_two, 2)
+    >>> bid_three = bid(masks_three, 11)
+
+Every bidder can broadcast its masked bid to all the nodes. Each node can locally assemble these as they arrive. Once a node has received all masked bids, it can determine its share of each component of the overall outcome of the auction:
+
+.. code-block:: python
+
+    >>> shares = [
+    ...     node.outcome([bid_zero, bid_one, bid_two, bid_three])
+    ...     for node in nodes
+    ... ]
+
+
+.. |set| replace:: ``set``
+.. _set: https://docs.python.org/3/library/functions.html#set
+
+.. |int| replace:: ``int``
+.. _int: https://docs.python.org/3/library/functions.html#int
+
+The overall outcome can be reconstructed from the shares by the auction operator. The outcome is represented as a |set|_ containing the |int|_ identifiers of the winning bidders:
+
+.. code-block:: python
+
+    >>> list(sorted(reveal(shares)))
+    [1, 3]
+
 Development
 -----------
 All installation and development dependencies are fully specified in ``pyproject.toml``. The ``project.optional-dependencies`` object is used to `specify optional requirements <https://peps.python.org/pep-0621>`__ for various development tasks. This makes it possible to specify additional options (such as ``docs``, ``lint``, and so on) when performing installation using `pip <https://pypi.org/project/pip>`__:
