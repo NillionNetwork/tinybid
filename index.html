@@ -525,7 +525,7 @@
             return bid_handler
 
         nodes = [node(), node(), node()]
-        preprocess(nodes, price=15) # This maximum *price*...
+        preprocess(nodes, bids=4, prices=15) # This maximum *price*...
         for identifier in [1, 2, 3, 4]:
             js.document.getElementById('bid-' + str(identifier)).addEventListener(
                 'click',
