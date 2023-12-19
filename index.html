@@ -355,7 +355,7 @@
               <div class="row row-cols-1">
                 <div class="col-xs-6" style="text-align:center;">
                   <div class="box-title noselect node-internal-title" id="node-one-bids-title">Masked Bids</div>
-                  <canvas id="node-one-bids" style="width:100%; height:25px;"></canvas>
+                  <canvas id="node-one-bids" style="width:100%; height:40px;"></canvas>
                   <div class="box-title noselect node-internal-title" id="node-one-share-title">Secret Share of Outcome</div>
                   <canvas id="node-one-share" style="width:100%; height:25px;"></canvas>
                 </div>
@@ -370,7 +370,7 @@
               <div class="row row-cols-1">
                 <div class="col-xs-6">
                   <div class="box-title noselect node-internal-title" id="node-two-bids-title">Masked Bids</div>
-                  <canvas id="node-two-bids" style="width:100%; height:25px;"></canvas>
+                  <canvas id="node-two-bids" style="width:100%; height:40px;"></canvas>
                   <div class="box-title noselect node-internal-title" id="node-two-share-title">Secret Share of Outcome</div>
                   <canvas id="node-two-share" style="width:100%; height:25px;"></canvas>
                 </div>
@@ -385,7 +385,7 @@
               <div class="row row-cols-1">
                 <div class="col-xs-6">
                   <div class="box-title noselect node-internal-title"id="node-three-bids-title">Masked Bids</div>
-                  <canvas id="node-three-bids" style="width:100%; height:25px;"></canvas>
+                  <canvas id="node-three-bids" style="width:100%; height:40px;"></canvas>
                   <div class="box-title noselect node-internal-title"id="node-three-share-title">Secret Share of Outcome</div>
                   <canvas id="node-three-share" style="width:100%; height:25px;"></canvas>
                 </div>
@@ -461,6 +461,8 @@
         import js
 
         bids = [None, None, None, None]
+        bidsForJS = None
+        sharesForJS = None
 
         def show_contribution(data):
             lines = []            
@@ -468,10 +470,20 @@
             broadcast = [((256 * int(v)) // v.modulus) for (_, v) in data.items()]
             js.showToken()
 
+        def modulo_to_uint8(m):
+            return (256 * int(m)) // m.modulus
+
         def run_if_ready():
             global bids
+            global bidsForJS
             if all(bid is not None for bid in bids):
                 shares = [node.outcome(bids) for node in nodes]
+                global sharesForJS
+                sharesForJS = [
+                    modulo_to_uint8(value)
+                    for share in shares
+                    for value in share
+                ]
                 result = list(sorted(reveal(shares)))
                 js.showShareAtNode('one')
                 js.showShareAtNode('two')
@@ -494,6 +506,16 @@
                 js.document.getElementById('bid-' + str(identifier)).disabled = True
                 js.sliderDisable('bid-slider-' + str(identifier))
                 js.connectorsBidsToNodes()
+                global bidsForJS
+                bidsForJS = [
+                    (
+                        modulo_to_uint8(list(kv.values())[0])
+                        if not isinstance(kv, int) else
+                        kv
+                    )
+                    for bid in bids
+                    for kv in (bid if bid is not None else range(16))
+                ]
                 js.nodesEnable()
                 js.showBidsAtNode('one')
                 js.showBidsAtNode('two')
@@ -596,24 +618,24 @@
 
       function showBidsAtNode(nodeName) {
         $("#node-" + nodeName + "-bids-title").show();
-        //let share = Array.from(pyscript.interpreter.globals.get("broadcast"));
+        let bids = Array.from(pyscript.interpreter.globals.get("bidsForJS"));
         let canvas = document.getElementById("node-" + nodeName + "-bids");
         let context = canvas.getContext("2d");
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
         let w = canvas.width, h = canvas.height;
-        let pixelWidth = (h / 16) * 6 * (1.6 * canvas.width / 242), pixelHeight = 6;
+        let pixelWidth = (h / 16) * 3.72 * (1.6 * canvas.width / 242), pixelHeight = 6;
         let opacity = 1;
         for (let row = 0; row < 4; row++) {
           for (let i = 0; i < 16; i++) {
             context.fillStyle = (
               "rgba(255, 255, 255, " +
-              (opacity * ((bidStatus[row] ? 1 : 0) * Math.random())) +
+              (opacity * ((bidStatus[row] ? 1 : 0) * (bids[(row * 16) + i] / 256))) +
               ")"
             );
             context.fillRect(
               i * pixelWidth,
-              row * pixelHeight,
+              row * (pixelHeight + 5),
               pixelWidth,
               pixelHeight
             );
@@ -623,7 +645,8 @@
 
       function showShareAtNode(nodeName) {
         $("#node-" + nodeName + "-share-title").show();
-        //let share = Array.from(pyscript.interpreter.globals.get("broadcast"));
+        let nodeIndex = (nodeName == 'one' ? 1 : ((nodeName == 'two' ? 2 : 3))) - 1;
+        let shares = Array.from(pyscript.interpreter.globals.get("sharesForJS"));
         let canvas = document.getElementById("node-" + nodeName + "-share");
         let context = canvas.getContext("2d");
         canvas.width = canvas.offsetWidth;
@@ -632,7 +655,7 @@
         let pixelWidth = (h / 16) * 6 * (1.6 * canvas.width / 242), pixelHeight = 6;
         let opacity = 1;
         for (let i = 0; i < 16; i++) {
-          context.fillStyle = "rgba(255, 255, 255, " + (opacity * (Math.random())) + ")";
+          context.fillStyle = "rgba(255, 255, 255, " + (opacity * (shares[(nodeIndex * 16) + i] / 256)) + ")";
           context.fillRect(i * pixelWidth, 0, pixelWidth, pixelHeight);
         }
       }
