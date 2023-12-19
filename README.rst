@@ -41,7 +41,10 @@ The library can be imported in the usual way:
 Basic Example
 ^^^^^^^^^^^^^
 
-Suppose that a workflow is supported by three nodes (parties performing a decentralized auction). The :obj:`node` objects would be instantiated locally by each of these three parties:
+.. |node| replace:: ``node``
+.. _node: https://tinybid.readthedocs.io/en/0.1.0/_source/tinybid.html#tinybid.tinybid.node
+
+Suppose that a workflow is supported by three nodes (parties performing a decentralized auction). The |node|_ objects would be instantiated locally by each of these three parties:
 
 .. code-block:: python
 
@@ -91,7 +94,6 @@ Every bidder can broadcast its masked bid to all the nodes. Each node can locall
     ...     node.outcome([bid_zero, bid_one, bid_two, bid_three])
     ...     for node in nodes
     ... ]
-
 
 .. |set| replace:: ``set``
 .. _set: https://docs.python.org/3/library/functions.html#set

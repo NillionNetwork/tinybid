@@ -14,8 +14,8 @@ authors = [
 readme = "README.rst"
 requires-python = ">=3.7"
 dependencies = [
-    "modulo~=2.1",
     "bitlist~=1.2",
+    "modulo~=2.1",
     "tinynmc~=0.2"
 ]
 
