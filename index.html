@@ -66,6 +66,7 @@
           height:100px;
       }
       .ui-slider-range { background-color:#0000FF; }
+      .ui-slider-disabled .ui-slider-range { background-color:#555555; }
       .ui-slider .ui-slider-handle { font-size:30px; }
       .ui-slider .ui-state-hover { background-color:#0000FF; }
       .ui-slider .ui-state-active { background-color:#0000FF; }
@@ -452,13 +453,13 @@
       </div>
     </footer>
     <py-config>
-      packages = ["bitlist", "tinynmc"]
+      packages = ["bitlist", "tinybid"]
     </py-config>
-    <py-script src="https://raw.githubusercontent.com/nillion-oss/tinybid/main/src/tinybid/tinybid.py"></py-script>
     <section class="pyscript">
       <py-script>
         from pyodide.ffi import create_proxy
         import js
+        from tinybid import *
 
         bids = [None, None, None, None]
         bidsForJS = None
@@ -493,12 +494,12 @@
                 js.document.getElementById('result-bar').style.backgroundColor = '#FFFFFF'
                 js.document.getElementById('result-bar').style.width = '100%'
                 js.document.getElementById('result-bar').innerHTML = \
-                    'Winning bidder(s): ' + (', '.join(map(str, result))) + '.'
+                    'Winning bidder(s): ' + (', '.join([str(i + 1) for i in result])) + '.'
 
         def make_bid_handler(identifier):
 
             def bid_handler(_):
-                request_ = request(identifier=identifier)
+                request_ = request(identifier=(identifier - 1))
                 masks = [node.masks(request_) for node in nodes]
                 price = js.getBid(identifier)
                 global bids
