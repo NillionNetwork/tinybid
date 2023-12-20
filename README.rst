@@ -22,6 +22,11 @@ Minimal pure-Python library that implements a basic single-item first-price auct
    :target: https://coveralls.io/github/nillion-oss/tinybid?branch=main
    :alt: Coveralls test coverage summary.
 
+Purpose
+-------
+
+This library demonstrates how a functionality can be implemented using a `secure multi-party computation (MPC) protocol <https://eprint.iacr.org/2023/1740>`__ for evaluating arithmetic sum-of-products expressions (as implemented in `tinynmc <https://pypi.org/project/tinynmc>`__). The approach used in this library can serve as a template for any workflow that relies on multiple simultaneous instances of such a protocol.
+
 Installation and Usage
 ----------------------
 
@@ -42,7 +47,7 @@ Basic Example
 ^^^^^^^^^^^^^
 
 .. |node| replace:: ``node``
-.. _node: https://tinybid.readthedocs.io/en/0.1.0/_source/tinybid.html#tinybid.tinybid.node
+.. _node: https://tinybid.readthedocs.io/en/0.2.0/_source/tinybid.html#tinybid.tinybid.node
 
 Suppose that a workflow is supported by three nodes (parties performing a decentralized auction). The |node|_ objects would be instantiated locally by each of these three parties:
 
@@ -75,7 +80,7 @@ Each bidder can deliver a request to each node, and each node can then locally t
     >>> masks_three = [node.masks(request_three) for node in nodes]
 
 .. |bid| replace:: ``bid``
-.. _bid: https://tinybid.readthedocs.io/en/0.1.0/_source/tinybid.html#tinybid.tinybid.bid
+.. _bid: https://tinybid.readthedocs.io/en/0.2.0/_source/tinybid.html#tinybid.tinybid.bid
 
 Each bidder can then generate locally a |bid|_ instance (*i.e.*, a masked bid price):
 
@@ -107,6 +112,65 @@ The overall outcome can be reconstructed from the shares by the auction operator
 
     >>> list(sorted(reveal(shares)))
     [1, 3]
+
+Implementation
+--------------
+The auction workflow relies on a data structure for representing an individual bid that is inspired by `one-hot <https://en.wikipedia.org/wiki/One-hot>`__ encodings. For example, suppose there are six possible prices and four bidders. Each bid can be represented as a list containing six `field <https://en.wikipedia.org/wiki/Field_(mathematics)>`__ elements, where each component corresponds to one of the six possible prices.Ensure
+
+Each bidder assembles a list in which the component corresponding to their bid price encodes their unique identifier and in which all other entries are 1. The bidders' unique identifiers are encoded in such a way that the product of any combination of encodings can be decomposed. The table below represents four bids: 3, 4, 1, and 4 (going from top to bottom). In each row, the identifier encoding for bidder *i* is calculated using the formula 2^(2^(*i* + 1)).
+
++-------------------------+-------+-------+-------+-------+-------+-------+
+| **possible bid prices** | **0** | **1** | **2** | **3** | **4** | **5** |
++-------------------------+-------+-------+-------+-------+-------+-------+
+| **bid from bidder 0**   |   1   |   1   |   1   |  2^2  |   1   |   1   |
++-------------------------+-------+-------+-------+-------+-------+-------+
+| **bid from bidder 1**   |   1   |   1   |   1   |   1   |  2^4  |   1   |
++-------------------------+-------+-------+-------+-------+-------+-------+
+| **bid from bidder 2**   |   1   |  2^8  |   1   |   1   |   1   |   1   |
++-------------------------+-------+-------+-------+-------+-------+-------+
+| **bid from bidder 3**   |   1   |   1   |   1   |   1   |  2^16 |   1   |
++-------------------------+-------+-------+-------+-------+-------+-------+
+
+.. |int_bit_length| replace:: ``int.bit_length``
+.. _int_bit_length: https://docs.python.org/3/library/stdtypes.html#int.bit_length
+
+The overall outcome of the auction can be determined by (1) performing a componentwise multiplication of the lists and (2) determining which identifiers contributed to the non-1 value with the highest index. The table below presents the entries of the componentwise product of the bids above, the exponents of the entries (which can be computed using, for example, |int_bit_length|_), and the binary representations of the exponents. It is evident that the winning bidders can be inferred by examining the binary representation of the exponent of the non-1 component with the highest index.
+
++-------------------------+-------+-------+-------+-------+-------------+-------+
+| **possible bid prices** | **0** | **1** | **2** | **3** | **4**       | **5** |
++-------------------------+-------+-------+-------+-------+-------------+-------+
+| **product**             |   1   |  2^8  |   1   |  2^2  |  2^(4 + 16) |   1   |
++-------------------------+-------+-------+-------+-------+-------------+-------+
+| **exponent**            |   0   |   8   |   0   |   2   |     4 + 16  |   0   |
++-------------------------+-------+-------+-------+-------+-------------+-------+
+| **exponent in binary**  | 00000 | 01000 | 00000 | 00010 |      10100  | 00000 |
++-------------------------+-------+-------+-------+-------+-------------+-------+
+
+In order to keep things simple, assume that all bidders have an interest in ensuring that only the winning bids can be determined from the outcome. Under this assumption, the in-the-clear version of the workflow presented above can be modified in a straightforward way to reveal only the winning bidders. In particular, the 1 entries in every list that appear *before* the bid price component are instead replaced by random nonzero field elements (generated locally by the bidder assembling the bid). This ensures that the overall componentwise product hides all bid information other than the winning bid price and the identities of the winning bidders.
+
+In the table below, *R* is a placeholder symbol representing various random field elements. Note that any field element multiplied by a random field element (represented by *R*) yields some other random field element (also represented by *R*). Thus, in the below product, the only components not masked via multiplication by a random field element are (1) the component encoding the identifiers of the winning bidders and (2) all components corresponding to prices above the highest bid(s).
+
++-------------------------+-------+-------+-------+-------+-------------+-------+
+| **possible bid prices** | **0** | **1** | **2** | **3** | **4**       | **5** |
++-------------------------+-------+-------+-------+-------+-------------+-------+
+| **bid from bidder 0**   |  *R*  |  *R*  |  *R*  |  2^2  |   1         |   1   |
++-------------------------+-------+-------+-------+-------+-------------+-------+
+| **bid from bidder 1**   |  *R*  |  *R*  |  *R*  |  *R*  |  2^4        |   1   |
++-------------------------+-------+-------+-------+-------+-------------+-------+
+| **bid from bidder 2**   |  *R*  |  2^8  |   1   |   1   |   1         |   1   |
++-------------------------+-------+-------+-------+-------+-------------+-------+
+| **bid from bidder 3**   |  *R*  |  *R*  |  *R*  |  *R*  |  2^16       |   1   |
++-------------------------+-------+-------+-------+-------+-------------+-------+
+| **product**             |  *R*  |  *R*  |  *R*  |  *R*  |  2^(4 + 16) |   1   |
++-------------------------+-------+-------+-------+-------+-------------+-------+
+
+.. |tinynmc_node| replace:: ``node``
+.. _tinynmc_node: https://tinynmc.readthedocs.io/en/0.2.0/_source/tinynmc.html#tinynmc.tinynmc.node
+
+.. |tinybid_node| replace:: ``node``
+.. _tinybid_node: https://tinybid.readthedocs.io/en/0.2.0/_source/tinybid.html#tinybid.tinybid.node
+
+Each component of the overall product is calculated using a distinct instance of the protocol implemented by `tinynmc <https://pypi.org/project/tinynmc>`__. This is accomplished by maintaining multiple distinct `tinynmc <https://pypi.org/project/tinynmc>`__ |tinynmc_node|_ objects (one for each possible bid price) inside each `tinybid <https://pypi.org/project/tinybid>`__ |tinybid_node|_ object.
 
 Development
 -----------
