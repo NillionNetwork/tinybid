@@ -170,7 +170,7 @@ In the table below, *R* is a placeholder symbol representing various random fiel
 .. |tinybid_node| replace:: ``node``
 .. _tinybid_node: https://tinybid.readthedocs.io/en/0.2.0/_source/tinybid.html#tinybid.tinybid.node
 
-Each component of the overall product is calculated using a distinct instance of the protocol implemented by `tinynmc <https://pypi.org/project/tinynmc>`__. This is accomplished by maintaining multiple distinct `tinynmc <https://pypi.org/project/tinynmc>`__ |tinynmc_node|_ objects (one for each possible bid price) inside each `tinybid <https://pypi.org/project/tinybid>`__ |tinybid_node|_ object.
+Each component of the overall product is calculated using a distinct instance of the protocol implemented by `tinynmc <https://pypi.org/project/tinynmc>`__. This is accomplished by maintaining multiple distinct `tinynmc <https://pypi.org/project/tinynmc>`__ |tinynmc_node|_ objects (one for each possible bid price) inside each `tinybid <https://pypi.org/project/tinybid>`__ |tinybid_node|_ object. In this way, the bid information is protected both from the auction operator (thanks to the random field elements) and from the nodes (thanks to masking via the `MPC protocol <https://eprint.iacr.org/2023/1740>`__).
 
 Development
 -----------

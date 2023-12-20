@@ -74,6 +74,25 @@ class node:
     >>> list(sorted(reveal(shares)))
     [1, 3]
     """
+    def __init__(self: node):
+        """
+        Create a node instance and define its private attributes.
+        """
+        # The signature describes the workflow for *each individual entry* of
+        # the overall outcome list being computed by the auction workflow.
+        self._signature: List[int] = None
+
+        # The number of distinct prices. Because the permitted prices must fall
+        # in a range between ``0`` (inclusive) and ``_prices`` (exclusive),
+        # this attribute can be used to specify the range of prices as
+        # ``range(_prices)``.
+        self._prices: int = None
+
+        # This node encapsulates ``_prices`` distinct ``tinynmc`` nodes,
+        # each of which will participate in the computation of one of the
+        # entries in the overall outcome list.
+        self._nodes: List[tinynmc.node] = None
+
     def masks( # pylint: disable=arguments-renamed,redefined-outer-name
             self: node,
             request: Iterable[Tuple[int, int]]
@@ -83,9 +102,9 @@ class node:
 
         :param request: Request from bidder.
         """
-        return [ # pylint: disable=no-member
+        return [ # pylint: disable=unsubscriptable-object
             tinynmc.node.masks(self._nodes[i], request)
-            for i in range(self._prices) # pylint: disable=no-member
+            for i in range(self._prices)
         ]
 
     def outcome(self: node, bids: Sequence[bid]) -> List[modulo]:
@@ -95,11 +114,8 @@ class node:
         :param bids: Sequence of masked bids.
         """
         prices = len(bids[0])
-        return [ # pylint: disable=no-member
-            self._nodes[i].compute(
-                getattr(self, '_signature'),
-                [bid[i] for bid in bids]
-            )
+        return [ # pylint: disable=unsubscriptable-object
+            self._nodes[i].compute(self._signature, [bid[i] for bid in bids])
             for i in range(prices)
         ]
 
@@ -183,19 +199,15 @@ def preprocess(nodes: Sequence[node], bids: int, prices: int):
     >>> nodes = [node(), node(), node()]
     >>> preprocess(nodes, bids=4, prices=16)
     """
+    # pylint: disable=protected-access
     signature = [bids]
 
     for node_ in nodes:
-        setattr(node_, '_signature', signature)
-        setattr(node_, '_prices', prices)
-        setattr(node_, '_bids', [])
-        setattr(node_, '_nodes', [
-            tinynmc.node()
-            for _ in range(prices)
-        ])
+        node_._signature = signature
+        node_._prices = prices
+        node_._nodes = [tinynmc.node() for _ in range(prices)]
 
     for i in range(prices):
-        # pylint: disable=protected-access
         tinynmc.preprocess(
             signature,
             [node_._nodes[i] for node_ in nodes]
