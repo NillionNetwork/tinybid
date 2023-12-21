@@ -23,6 +23,7 @@
     <style>
       html { height:100vh; }
       body { display:flex; flex-direction:column; min-height:100vh; padding:0px 0px 0px 0px; font-family:'Cabin',sans-serif; }
+      #pyscript_loading_splash { z-index:8192; }
       @media (min-width: 768px) { html { font-size:16px; } }
       a { color:#0000FF; font-weight:bold; text-decoration:none; }
       a:hover { text-decoration:none; color:#000000; }
@@ -30,7 +31,7 @@
       .space { margin-top:30px; }
       hr { height:1px !important; margin:0px; border-top:1px solid #000000 !important; opacity:1; }
       h1 { text-align:left; }
-      h2 { margin-top:10px; line-height:21px; font-size:18px; font-weight:normal; }
+      h2 { margin-top:10px; line-height:24px; font-size:18px; font-weight:normal; }
       h3 {
         width:100%;
         margin-bottom:0px;
@@ -38,6 +39,19 @@
         text-align:left;
         white-space:nowrap;
         font-size:20px;
+      }
+      .data-structure-list { margin-left:4px; margin-right:4px; }
+      .data-structure-list > span {
+        padding:1px 4px 1px 4px;
+        border:1px solid #000000;
+        font-size:12px;
+        font-weight:bold;
+      }
+      .data-structure-heatmap { margin-left:4px; margin-right:4px; }
+      .data-structure-heatmap > span {
+        padding:4px 10px 1px 10px;
+        background-color:#000000;
+        font-size:8px;
       }
       .container > .row { margin-bottom:8px; }
       .grid-row { display:grid; grid-auto-rows:auto; grid-row-gap:0px; grid-column-gap:0px; }
@@ -51,7 +65,7 @@
         position:relative;
         top:-16px;
         padding-right:8px;
-        line-height:21px; 
+        line-height:24px; 
         font-size:18px; font-weight:normal;
       }
       .content { height:100%; width:100%; margin:0px 10px 0px 0px; padding:0px 10px 0px 10px; text-align:left; }
@@ -59,9 +73,9 @@
       .client-ui-table { display:table; height:100%; width:100%; }
       .client-ui-table-row { display:table-row; }
       .client-ui-table-cell { display:table-cell; }
-      .bid-price { font-weight:bold; color:#0000FF; }
+      .bid-price { font-size:18px !important; font-weight:bold; color:#0000FF; }
       .ui-slider {
-          margin:16px 0px 16px 0px;
+          margin:18px 0px 6px 0px;
           width:20px;
           height:100px;
       }
@@ -77,6 +91,7 @@
       .activated > h3 { background-color:#000000; color:#FFFFFF; }
       .activated > .entity { border-top:1px solid #FFFFFF; background-color:#000000; color:#FFFFFF; }
       .client { height:100%; }
+      .client h3 { margin-bottom:6px; }
       .client > .row { }
       .client > .row > .col { }
       .box-title {
@@ -90,7 +105,7 @@
       }
       .action { margin-top:20px; }
       button {
-        width:100%;
+        width:50px;
         margin:0px 2px 2px 0px;
         -webkit-box-shadow: 2px 2px 0px 0px #555555;
         -moz-box-shadow: 2px 2px 0px 0px #555555;
@@ -189,7 +204,14 @@
             <h1><b>tinybid</b>: Secure Single-Item First-Price Auction</h1>
             <hr/>
             <h2>
-              This secure single-item first-price auction demo simulates a secure multi-party computation (MPC) protocol <b>entirely in your browser</b> by importing and invoking the <a href="https://github.com/nillion-oss/tinybid">tinybid</a> and underlying <a href="https://github.com/nillion-oss/tinynmc">tinynmc</a> libraries using <a href="https://pyscript.net">PyScript</a>.
+              <p>
+                This secure single-item first-price auction demo (source code <a href="https://github.com/nillion-oss/tinybid/tree/gh-pages">available on GitHub</a>) simulates a secure multi-party computation (MPC) protocol <b>entirely in your browser</b> by importing and invoking the <a href="https://github.com/nillion-oss/tinybid">tinybid</a> and underlying <a href="https://github.com/nillion-oss/tinynmc">tinynmc</a> libraries using <a href="https://pyscript.net">PyScript</a>.
+              </p>
+              <p>
+                Within the <a href="https://github.com/nillion-oss/tinybid?tab=readme-ov-file#implementation">implementation</a> of the library, lists of <a href="https://en.wikipedia.org/wiki/Finite_field">finite field</a> elements are used to represent both submitted bids and the overall outcome of an auction. In this demo, instances of these data structures are represented visually using a variant of a <a href="https://en.wikipedia.org/wiki/Heat_map">heat map</a> in which the brightness value corresponds to the difference between the finite field element and zero. For example, a vector such as
+                <span class="data-structure-list"><span>1 mod 11</span><span>5 mod 11</span><span>8 mod 11</span><span>3 mod 11</span><span>10 mod 11</span></span> would be represented by <span class="data-structure-heatmap"><span style="opacity:0.1;">&nbsp;</span><span style="opacity:0.5;">&nbsp;</span><span style="opacity:0.8;">&nbsp;</span><span style="opacity:0.3;">&nbsp;</span><span style="opacity:0.9;">&nbsp;</span></span>.
+
+              </p>
             </h2>
           </div>
         </div>
@@ -231,7 +253,7 @@
                   <div class="client-ui-table-cell" style="vertical-align:bottom;">
                     <div class="row row-cols-1 action">
                       <div class="col" style="text-align:center;">
-                        <button id="bid-1" style="width:50px;">Bid</button>
+                        <button id="bid-1">Bid</button>
                       </div>
                     </div>
                   </div>
@@ -261,7 +283,7 @@
                   <div class="client-ui-table-cell" style="vertical-align:bottom;">
                     <div class="row row-cols-1 action">
                       <div class="col" style="text-align:center;">
-                        <button id="bid-2" style="width:50px;">Bid</button>
+                        <button id="bid-2">Bid</button>
                       </div>
                     </div>
                   </div>
@@ -291,7 +313,7 @@
                   <div class="client-ui-table-cell" style="vertical-align:bottom;">
                     <div class="row row-cols-1 action">
                       <div class="col" style="text-align:center;">
-                        <button id="bid-3" style="width:50px;">Bid</button>
+                        <button id="bid-3">Bid</button>
                       </div>
                     </div>
                   </div>
@@ -321,7 +343,7 @@
                   <div class="client-ui-table-cell" style="vertical-align:bottom;">
                     <div class="row row-cols-1 action">
                       <div class="col" style="text-align:center;">
-                        <button id="bid-4" style="width:50px;">Bid</button>
+                        <button id="bid-4">Bid</button>
                       </div>
                     </div>
                   </div>
