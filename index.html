@@ -698,7 +698,7 @@
               orientation: "vertical",
               range: "min",
               min: 0,
-              max: prices,
+              max: prices - 1,
               value: price,
               slide: function(event, ui) {
                 document.getElementById("bid-price-" + bidId).innerHTML = ui.value;
