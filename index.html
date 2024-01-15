@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>tinybid: Secure Single-Item First-Price Auction</title>
+    <title>tinybid: Secure Single-Item First-Price Auction Demo</title>
     <script>
       var favIcon = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAGFBMVEUAAABHcEwAAAAAAAAAAAAAAAAAAAAAAACpMnD0AAAAB3RSTlNjAL+fpPk8rO4B2AAAADNJREFUGJVjYEQDDIxsLMxwwMIGFGBgRwIMOAVYgQBZgAlkHNMgEwB6joUB7E8WiOfQAADiPANLertncwAAAABJRU5ErkJggg==";
       var docHead = document.getElementsByTagName('head')[0];
@@ -21,15 +21,64 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <style>
-      html { height:100vh; }
-      body { display:flex; flex-direction:column; min-height:100vh; padding:0px 0px 0px 0px; font-family:'Cabin',sans-serif; }
+      /*****************
+       * Color scheme. *
+       *****************/
+      :root {
+        --color-text:#000000;
+        --color-background:#FFFFFF;
+        --color-link:#0000FF;
+        --color-link-hover:#000000;
+        --color-interactive:#0000FF;
+        --color-interactive-text:#FFFFFF;
+        --color-interactive-text-disabled:#777777;
+        --color-interactive-hover:#000000;
+        --color-interactive-disabled-light:#CCCCCC;
+        --color-interactive-disabled-dark:#444444;
+        --color-interactive-shadow:#555555;
+        --color-separator:#000000;
+        --color-client-background:#FFFFFF;
+        --color-client-border:#000000;
+        --color-client-text:#000000;
+        --color-node-background:#00003F;
+        --color-node-border:#00003F;
+        --color-node-text:#FFFFFF;
+        --color-diagram-edge:#000000;
+        --color-footer-background:#0000FF;
+        --color-footer-text:#FFFFFF;
+        --color-footer-link:#FFFFFF;
+        --color-footer-link-hover:#FFFFFF;
+      }
+
+      /******************************************
+       * Customizations of common dependencies. *
+       ******************************************/
       #pyscript_loading_splash { z-index:8192; }
-      @media (min-width: 768px) { html { font-size:16px; } }
-      a { color:#0000FF; font-weight:bold; text-decoration:none; }
-      a:hover { text-decoration:none; color:#000000; }
-      #header { min-height:100px; margin-top:60px; margin-bottom:20px; }
-      .space { margin-top:30px; }
-      hr { height:1px !important; margin:0px; border-top:1px solid #000000 !important; opacity:1; }
+
+      /********************************************* 
+       * High-level page layout, look, and design. *
+       *********************************************/
+      html { height:100vh; }
+      body {
+        display:flex; flex-direction:column;
+        min-height:100vh;
+        padding:0px 0px 0px 0px;
+        background-color:var(--color-background);
+        font-family:'Cabin',sans-serif;
+        color:var(--color-text);
+      }
+      .container > .row { margin-bottom:8px; }
+      .card-deck .card { border:0px; min-width:220px; }
+      .card {
+        min-width:350px !important;
+        background-color:var(--color-background);
+        color:var(--color-text);
+      }
+      .card-body { padding:2px 10px 2px 10px; line-height:18px; font-size:14px; }
+      a { font-weight:bold; text-decoration:none; color:var(--color-link); }
+      a:hover { text-decoration:none; color:var(--color-link-hover); }
+      .header { min-height:100px; margin-top:60px; margin-bottom:20px; }
+      hr { margin:0px; border-top:1px solid var(--color-separator) !important; opacity:1; }
       h1 { text-align:left; }
       h2 { margin-top:10px; line-height:24px; font-size:18px; font-weight:normal; }
       h3 {
@@ -40,116 +89,25 @@
         white-space:nowrap;
         font-size:20px;
       }
-      .data-structure-list { margin-left:4px; margin-right:4px; }
-      .data-structure-list > span {
-        padding:1px 4px 1px 4px;
-        border:1px solid #000000;
-        font-size:12px;
-        font-weight:bold;
-      }
-      .data-structure-heatmap { margin-left:4px; margin-right:4px; }
-      .data-structure-heatmap > span {
-        padding:4px 10px 1px 10px;
-        background-color:#000000;
-        font-size:8px;
-      }
-      .container > .row { margin-bottom:8px; }
-      .grid-row { display:grid; grid-auto-rows:auto; grid-row-gap:0px; grid-column-gap:0px; }
-      .grid-row-clients { grid-template-columns:3fr 2.25fr 2.25fr 2.25fr 2.25fr; }
-      .grid-row-connectors { grid-template-columns:3fr 9fr; }
-      .grid-row-nodes { grid-template-columns:3fr 3fr 3fr 3fr; }
-      .grid-row-result { grid-template-columns:3fr 9fr; }
-      .grid-col { padding:0px 6px 0px 6px; }
-      .guide > ol > li { margin-left:8px; font-size:42px; font-weight:bold; }
-      .guide > ol > li > div {
-        position:relative;
-        top:-16px;
-        padding-right:8px;
-        line-height:24px; 
-        font-size:18px; font-weight:normal;
-      }
-      .content { height:100%; width:100%; margin:0px 10px 0px 0px; padding:0px 10px 0px 10px; text-align:left; }
-      .entity { height:100%; margin-top:0px; padding:20px 24px 20px 24px; border:1px solid #000000; }
-      .client-ui-table { display:table; height:100%; width:100%; }
-      .client-ui-table-row { display:table-row; }
-      .client-ui-table-cell { display:table-cell; }
-      .bid-price { font-size:18px !important; font-weight:bold; color:#0000FF; }
-      .ui-slider {
-          margin:18px 0px 6px 0px;
-          width:20px;
-          height:100px;
-      }
-      .ui-slider-range { background-color:#0000FF; }
-      .ui-slider-disabled .ui-slider-range { background-color:#555555; }
-      .ui-slider .ui-slider-handle { font-size:30px; }
-      .ui-slider .ui-state-hover { background-color:#0000FF; }
-      .ui-slider .ui-state-active { background-color:#0000FF; }
-      .node { height:100%; }
-      .node > h3 { background-color:#00003F; color:#FFFFFF; }
-      .node > .entity { border-top:1px solid #FFFFFF; background-color:#00003F; color:#FFFFFF; }
-      .node-internal-title { display:none; }
-      .activated > h3 { background-color:#000000; color:#FFFFFF; }
-      .activated > .entity { border-top:1px solid #FFFFFF; background-color:#000000; color:#FFFFFF; }
-      .client { height:100%; }
-      .client h3 { margin-bottom:6px; }
-      .client > .row { }
-      .client > .row > .col { }
-      .box-title {
+      .footer-spacer { margin-top:70px; }
+      footer {
         width:100%;
-        margin-top:16px;
-        margin-bottom:10px;
-        text-align:center;
-        font-size:14px;
-        font-weight:bold;
-        line-height:16px !important;
+        margin:auto auto 0 auto;
+        padding:16px 0px 16px 0px;
+        background-color:var(--color-footer-background);
+        color:var(--color-footer-text);
       }
-      .action { margin-top:20px; }
-      button {
-        width:50px;
-        margin:0px 2px 2px 0px;
-        -webkit-box-shadow: 2px 2px 0px 0px #555555;
-        -moz-box-shadow: 2px 2px 0px 0px #555555;
-        box-shadow: 2px 2px 0px 0px #555555;
-        padding:8px;
-        border:0px solid #000000;
-        background-color:#0000FF;
-        color:#FFFFFF;
-      }
-      button:hover { background-color:#000000; }
-      button:active {
-        margin:2px 0px 0px 2px;
-        -webkit-box-shadow: 0px 0px 0px 0px #555555;
-        -moz-box-shadow: 0px 0px 0px 0px #555555;
-        box-shadow: 0px 0px 0px 0px #555555;
-      }
-      button:disabled { background-color:#CCCCCC; color:#777777; }
-      #result-bar {
-        min-width:10%;
-        margin-top:0px;
-        padding:0px 20px 20px 20px;
-        background-color:#FFFFFF;
-        text-align:center;
-        line-height:36px;
-        font-size:32px;
-        color:#FFFFFF;
-      }
-      .grid-row-connectors .grid-col { height:100px; }
-      canvas { width:100%; height:100px; }
-      .card-deck .card { border:0px; min-width:220px; }
-      .card { min-width:350px !important; }
-      .card-body { padding:2px 10px 2px 10px; line-height:18px; font-size:14px; }
-      footer { width:100%; margin:auto auto 0 auto; padding:16px 0px 16px 0px; background-color:#0000FF; color:#FFFFFF; }
-      footer a { color:#FFFFFF; }
-      footer a:hover { color:#FFFFFF; }
+      footer a { color:var(--color-footer-link); }
+      footer a:hover { color:var(--color-footer-link-hover); }
       footer .card-deck { margin-bottom:0px !important; }
-      footer .card { margin-bottom:0px !important; border:0px; background-color:#0000FF; }
+      footer .card { margin-bottom:0px !important; border:0px; background-color:var(--color-footer-background); }
       footer .card-body-items { padding:8px 20px 0px 20px; }
       footer .card-body-items-left { float:left; }
       footer .card-body-items-right { float:right; }
       footer .card-deck-copyright { height:26x !important; font-size:10px; }
       footer .card-copyright { height:26px !important; padding:0px 16px 0px 16px; font-size:12px !important; }
-      footer .license-phrase { color:#FFFFFF; }
-      footer .item { margin:0px 25px 0px 0px; white-space: nowrap; font-size:14px; }
+      footer .license-phrase { color:var(--color-footer-text); }
+      footer .item { margin:0px 25px 0px 0px; white-space:nowrap; font-size:14px; }
       footer .icon { margin:0px 15px 0px 0px; font-size:20px; }
       footer .icon-last { margin:0px 0px 0px 0px; font-size:18px; }
       .noselect {
@@ -161,56 +119,165 @@
                   user-select:none; /* Non-prefixed version, currently
                                        supported by Chrome, Edge, Opera and Firefox */
       }
-      @media all and (max-width:991px) {
+      @media (min-width: 768px) { html { font-size:16px; } }
+      @media all and (max-width:618px) { .header { margin-top:50px; } }
+
+      /************************************************************
+       * Layout for steps and data flow visualization containers. *
+       ************************************************************/
+      .grid-row { display:grid; grid-auto-rows:auto; grid-row-gap:0px; grid-column-gap:0px; }
+      .grid-col { padding:0px 6px 0px 6px; }
+      .grid-row-clients { grid-template-columns:3fr 2.25fr 2.25fr 2.25fr 2.25fr; }
+      .grid-row-nodes { grid-template-columns:3fr 3fr 3fr 3fr; }
+      .grid-row-recipient { grid-template-columns:3fr 9fr; }
+      .grid-row-diagram { grid-template-columns:3fr 9fr; }
+      .grid-row-diagram .grid-col { height:100px; }
+
+      /**************************************************** 
+       * Guidance/expository content layout and behavior. *
+       ****************************************************/
+      .step > ol > li { margin-left:8px; font-size:42px; font-weight:bold; }
+      .step > ol > li > div {
+        position:relative;
+        top:-16px;
+        padding-right:8px;
+        line-height:24px; 
+        font-size:18px; font-weight:normal;
+      }
+      @media all and (max-width:991px) { 
+        .step > ol > li { font-size:32px; }
+        .step > ol > li > div { top:-10px; padding-right:0px; line-height:20px; font-size:18px; }
+      }
+      @media all and (max-width:767px) {
+        .step > ol { margin-left:-12px; }
+        .step > ol > li { font-size:26px; }
+        .step > ol > li > div { top:-10px; padding-right:0px; line-height:14px; font-size:12px; }
+      }
+
+      /***********************************************************
+       * Panel elements (representing parties) and their layout. *
+       ***********************************************************/
+      .panel { height:100%; width:100%; margin:0px 10px 0px 0px; padding:0px 10px 0px 10px; }
+      .entity { height:100%; margin-top:0px; padding:20px 24px 20px 24px; }
+      .entity > div { display:table; height:100%; width:100%; }
+      .entity > div > div { display:table-row; }
+      .entity > div > div > div { display:table-cell; padding-bottom:14px; text-align:center; }
+      .entity > div > div:last-child > div { vertical-align:bottom; } /* Usually client buttons. */
+      .client {
+        border:1px solid var(--color-client-border);
+        background-color:var(--color-client-background);
+        color:var(--color-client-text);
+      }
+      .node {
+        border:1px solid var(--color-node-border);
+        background-color:var(--color-node-background);
+        color:var(--color-node-text);
+      }
+      .recipient > div > div > div { vertical-align:middle !important; } /* Usually output. */
+      h3 { margin-bottom:6px; }
+      h4 { margin-top:8px; padding-top:2px; text-align:center; line-height:16px !important; font-size:14px; }
+      @media all and (max-width:991px) { 
         .client { padding:10px; }
         h3 { font-size:14px; }
       }
       @media all and (max-width:767px) {
+        .panel { padding:0px; }
         .entity { padding:10px; }
-        .content { padding:0px; }
-        .guide > ol { margin-left:-12px; }
-        .guide > ol > li { font-size:26px; }
-        .guide > ol > li > div {
-          top:-10px;
-          padding-right:0px;
-          line-height:14px;
-          font-size:12px;
-        }
-        h3 { font-size:14px; }
-        .box-title { font-size:12px; }
-        .node-internal-title { line-height:8px !important; font-size:8px; }
-        button { font-size:14px; }
-        #result-bar { line-height:28px; font-size:24px; }
+        h4 { line-height:14px; font-size:12px !important; }
       }
-      @media all and (max-width:618px) {
-        #header { margin-top:50px; }
-        #license-phrase { /* display:none; */ }
+
+      /**************************************************** 
+       * Interactive user interface (UI) common elements. *
+       ****************************************************/
+      .array { height:20px; margin:0px 4px 0px 4px; }
+      .array > span {
+        padding:1px 4px 1px 4px;
+        border-top:1px solid var(--color-text);
+        border-left:1px solid var(--color-text);
+        border-bottom:1px solid var(--color-text);
+        font-size:12px; font-weight:bold;
+      }
+      .array > span:last-child { border-right:1px solid var(--color-text); }
+      .bytes { height:10px; margin:8px 4px 8px 4px; }
+      .bytes > span { padding-right:24px; font-size:14px; }
+      .bytes > table { height:100%; width:100%; }
+      button {
+        width:50px;
+        margin:0px 2px 2px 0px;
+        -webkit-box-shadow: 2px 2px 0px 0px var(--color-interactive-shadow);
+        -moz-box-shadow: 2px 2px 0px 0px var(--color-interactive-shadow);
+        box-shadow: 2px 2px 0px 0px var(--color-interactive-shadow);
+        padding:8px;
+        border:0px solid #000000;
+        background-color:var(--color-interactive);
+        color:var(--color-interactive-text);
+      }
+      button:hover { background-color:var(--color-interactive-hover); }
+      button:active {
+        margin:2px 0px 0px 2px;
+        -webkit-box-shadow: 0px 0px 0px 0px var(--color-interactive-shadow);
+        -moz-box-shadow: 0px 0px 0px 0px var(--color-interactive-shadow);
+        box-shadow: 0px 0px 0px 0px var(--color-interactive-shadow);
+      }
+      button:disabled {
+        background-color:var(--color-interactive-disabled-light);
+        color:var(--color-interactive-text-disabled);
+      }
+      #recipient-output {
+        margin-top:0px;
+        padding:0px 20px 10px 20px;
+        text-align:center;
+        font-size:32px;
+      }
+      @media all and (max-width:767px) {
+        button { font-size:14px; }
+        #recipient-output { line-height:28px; font-size:24px; }
       }
       @media all and (max-width:575px) {
         button { line-height:12px !important; font-size:10px; }
-        #result-bar { margin-bottom:20px; line-height:22px; font-size:18px; }
+        #recipient-output { margin-bottom:6px; line-height:24px; font-size:20px; }
       }
-      @media all and (max-width:400px) {
-        .card { min-width:250px !important; }
+
+      /**************************************************** 
+       * Interactive user interface (UI) custom layout and elements. *
+       ****************************************************/
+      .bid-price {
+        margin-top:12px; margin-bottom:4px;
+        text-align:center;
+        font-size:18px; font-weight:bold;
+        color:var(--color-interactive);
       }
-      @media all and (max-width:320px) { }
+      @media all and (max-width:767px) { .bid-price { font-size:16px; } }
+      .entity > div > div > div > .ui-slider { display:inline-block; margin-bottom:10px; }
+      .ui-slider { margin:18px 0px 6px 0px; width:20px; height:100px; }
+      .ui-slider-range { background-color:var(--color-interactive); }
+      .ui-slider-disabled .ui-slider-range { background-color:var(--color-interactive-disabled-dark); }
+      .ui-slider .ui-slider-handle { font-size:30px; }
+      .ui-slider .ui-state-hover { background-color:var(--color-interactive); }
+      .ui-slider .ui-state-active { background-color:var(--color-interactive); }
     </style>
   </head>
   <body>
-    <div class="container" id="header">
+    <div class="container header">
       <div class="card-deck mb-3">
         <div class="card mb-4">
           <div class="card-body">
-            <h1><b>tinybid</b>: Secure Single-Item First-Price Auction</h1>
+            <h1><b>tinybid</b>: Secure Single-Item First-Price Auction Demo</h1>
             <hr/>
             <h2>
               <p>
                 This secure single-item first-price auction demo (source code <a href="https://github.com/nillion-oss/tinybid/tree/gh-pages">available on GitHub</a>) simulates a secure multi-party computation (MPC) protocol <b>entirely in your browser</b> by importing and invoking the <a href="https://github.com/nillion-oss/tinybid">tinybid</a> and underlying <a href="https://github.com/nillion-oss/tinynmc">tinynmc</a> libraries using <a href="https://pyscript.net">PyScript</a>.
               </p>
               <p>
-                Within the <a href="https://github.com/nillion-oss/tinybid?tab=readme-ov-file#implementation">implementation</a> of the library, lists of <a href="https://en.wikipedia.org/wiki/Finite_field">finite field</a> elements are used to represent both submitted bids and the overall outcome of an auction. In this demo, instances of these data structures are represented visually using a variant of a <a href="https://en.wikipedia.org/wiki/Heat_map">heat map</a> in which the brightness value corresponds to the difference between the finite field element and zero. For example, a vector such as
-                <span class="data-structure-list"><span>1 mod 11</span><span>5 mod 11</span><span>8 mod 11</span><span>3 mod 11</span><span>10 mod 11</span></span> would be represented by <span class="data-structure-heatmap"><span style="opacity:0.1;">&nbsp;</span><span style="opacity:0.5;">&nbsp;</span><span style="opacity:0.8;">&nbsp;</span><span style="opacity:0.3;">&nbsp;</span><span style="opacity:0.9;">&nbsp;</span></span>.
-
+                Within the <a href="https://github.com/nillion-oss/tinybid?tab=readme-ov-file#implementation">implementation</a> of the library, vectors of <a href="https://en.wikipedia.org/wiki/Finite_field">finite field</a> elements are used to represent both submitted bids and the overall outcome of an auction. In the visualizations below, instances of these data structures are rendered using a variant of a <a href="https://en.wikipedia.org/wiki/Heat_map">heat map</a> in which the brightness value corresponds to the difference between the finite field element and zero. For example, a vector such as
+                <span class="array">
+                  <span>1 mod 11</span><span>5 mod 11</span><span>8 mod 11</span><span>3 mod 11</span><span>10 mod 11</span>
+                </span>
+                would be represented by
+                <span class="bytes" style="margin-right:-2px;">
+                  <span style="background-color:rgb(25,25,25);">&nbsp;</span><span style="background-color:rgb(128,128,128);"></span><span style="background-color:rgb(200,200,200);"></span><span style=" background-color:rgb(80,80,80);"></span><span style="background-color:rgb(230,230,230);"></span>
+                </span>.
+                Note also that bidders and nodes are numbered starting from zero so that their interface identifiers match their indices in the source code.
               </p>
             </h2>
           </div>
@@ -220,148 +287,90 @@
     <div class="container">
       <div class="grid-row grid-row-clients">
         <div class="grid-col">
-          <div class="guide">
-            <div class="guide">
-              <ol start="1">
-                <li>
+          <div class="step">
+            <ol start="1">
+              <li>
+                <div>
+                  For each bidder, use the slider to choose a bid value and then click <b>Bid</b>. The bids are encoded as vectors, masks are requested from the nodes, and the masked vectors are broadcast to all the nodes.
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+        <div class="grid-col">
+          <div class="panel">
+            <div class="entity client">
+              <div>
+                <div><h3>Bidder 0</h3></div>
+                <div>
                   <div>
-                    For each bidder, use the slider to choose a bid value and then click <b>Bid</b>. The bids are encoded as vectors, masks are requested from the nodes, and the masked vectors are broadcast to all the nodes.
-                  </div>
-                </li>
-              </ol>
-            </div>
-          </div>
-        </div>
-        <div class="grid-col">
-          <div class="content">
-            <div class="entity client">
-              <div class="client-ui-table">
-                <div class="client-ui-table-row">
-                  <h3>Bidder 1</h3>
-                </div>
-                <div class="client-ui-table-row">
-                  <div class="client-ui-table-cell" style="vertical-align:top;">
-                    <div class="row">
-                      <div class="col" style="text-align:center;">
-                        <div id="bid-slider-1-value" class="box-title bid-price noselect"></div>
-                        <div id="bid-slider-1" style="display:inline-block"></div>
-                      </div>
-                    </div>
+                    <div class="bid-price noselect" id="bid-price-0"></div>
+                    <div id="bid-slider-0"></div>
                   </div>
                 </div>
-                <div class="client-ui-table-row">
-                  <div class="client-ui-table-cell" style="vertical-align:bottom;">
-                    <div class="row row-cols-1 action">
-                      <div class="col" style="text-align:center;">
-                        <button id="bid-1">Bid</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <div><div><button id="bid-0">Bid</button></div></div>
               </div>
             </div>
           </div>
         </div>
         <div class="grid-col">
-          <div class="content">
+          <div class="panel">
             <div class="entity client">
-              <div class="client-ui-table">
-                <div class="client-ui-table-row">
-                  <h3>Bidder 2</h3>
-                </div>
-                <div class="client-ui-table-row">
-                  <div class="client-ui-table-cell" style="vertical-align:top;">
-                    <div class="row">
-                      <div class="col" style="text-align:center;">
-                        <div id="bid-slider-2-value" class="box-title bid-price noselect"></div>
-                        <div id="bid-slider-2" style="display:inline-block"></div>
-                      </div>
-                    </div>
+              <div>
+                <div><h3>Bidder 1</h3></div>
+                <div>
+                  <div>
+                    <div class="bid-price noselect" id="bid-price-1"></div>
+                    <div id="bid-slider-1"></div>
                   </div>
                 </div>
-                <div class="client-ui-table-row">
-                  <div class="client-ui-table-cell" style="vertical-align:bottom;">
-                    <div class="row row-cols-1 action">
-                      <div class="col" style="text-align:center;">
-                        <button id="bid-2">Bid</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <div><div><button id="bid-1">Bid</button></div></div>
               </div>
             </div>
           </div>
         </div>
         <div class="grid-col">
-          <div class="content">
+          <div class="panel">
             <div class="entity client">
-              <div class="client-ui-table">
-                <div class="client-ui-table-row">
-                  <h3>Bidder 3</h3>
-                </div>
-                <div class="client-ui-table-row">
-                  <div class="client-ui-table-cell" style="vertical-align:top;">
-                    <div class="row">
-                      <div class="col" style="text-align:center;">
-                        <div id="bid-slider-3-value" class="box-title bid-price noselect"></div>
-                        <div id="bid-slider-3" style="display:inline-block"></div>
-                      </div>
-                    </div>
+              <div>
+                <div><h3>Bidder 2</h3></div>
+                <div>
+                  <div>
+                    <div class="bid-price noselect" id="bid-price-2"></div>
+                    <div id="bid-slider-2"></div>
                   </div>
                 </div>
-                <div class="client-ui-table-row">
-                  <div class="client-ui-table-cell" style="vertical-align:bottom;">
-                    <div class="row row-cols-1 action">
-                      <div class="col" style="text-align:center;">
-                        <button id="bid-3">Bid</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+               <div><div><button id="bid-2">Bid</button></div></div>
               </div>
             </div>
           </div>
         </div>
         <div class="grid-col">
-          <div class="content">
+          <div class="panel">
             <div class="entity client">
-              <div class="client-ui-table">
-                <div class="client-ui-table-row">
-                  <h3>Bidder 4</h3>
-                </div>
-                <div class="client-ui-table-row">
-                  <div class="client-ui-table-cell" style="vertical-align:top;">
-                    <div class="row">
-                      <div class="col" style="text-align:center;">
-                        <div id="bid-slider-4-value" class="box-title bid-price noselect"></div>
-                        <div id="bid-slider-4"  style="display:inline-block"></div>
-                      </div>
-                    </div>
+              <div>
+                <div><h3>Bidder 3</h3></div>
+                <div>
+                  <div>
+                    <div class="bid-price noselect" id="bid-price-3"></div>
+                    <div id="bid-slider-3"></div>
                   </div>
                 </div>
-                <div class="client-ui-table-row">
-                  <div class="client-ui-table-cell" style="vertical-align:bottom;">
-                    <div class="row row-cols-1 action">
-                      <div class="col" style="text-align:center;">
-                        <button id="bid-4">Bid</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <div><div><button id="bid-3">Bid</button></div></div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="grid-row grid-row-connectors">
+      <div class="grid-row grid-row-diagram">
         <div class="grid-col"></div>
         <div class="grid-col">
-          <canvas id="canvas-bids-to-nodes"></canvas>
+          <div id="diagram-input"></div>
         </div>
       </div>
       <div class="grid-row grid-row-nodes">
         <div class="grid-col">
-          <div class="guide" id="step-nodes" style="opacity:0.2;">
+          <div class="step" id="step-nodes">
             <ol start="2">
               <li>
                 <div>
@@ -372,60 +381,87 @@
           </div>
         </div>
         <div class="grid-col">
-          <div class="content node" id="panel-node-one" style="opacity:0.2;">
-            <div class="entity">
-              <h3>Node 1</h3>
-              <div class="row row-cols-1">
-                <div class="col-xs-6" style="text-align:center;">
-                  <div class="box-title noselect node-internal-title" id="node-one-bids-title">Masked Bids</div>
-                  <canvas id="node-one-bids" style="width:100%; height:40px;"></canvas>
-                  <div class="box-title noselect node-internal-title" id="node-one-share-title">Secret Share of Outcome</div>
-                  <canvas id="node-one-share" style="width:100%; height:25px;"></canvas>
+          <div class="panel">
+            <div class="entity node" id="node-0">
+              <div>
+                <div><h3>Node 0</h3></div>
+                <div>
+                  <div>
+                    <h4 class="noselect" id="node-0-bids-title">Masked Bids</h4>
+                    <div class="bytes" id="bid-masked-0-at-node-0"></div>
+                    <div class="bytes" id="bid-masked-1-at-node-0"></div>
+                    <div class="bytes" id="bid-masked-2-at-node-0"></div>
+                    <div class="bytes" id="bid-masked-3-at-node-0"></div>
+                  </div>
+                </div>
+                <div>
+                  <div>
+                    <h4 class="noselect" id="node-0-share-title">Secret Share of Outcome</h4>
+                    <div class="bytes" id="share-at-node-0"></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div class="grid-col">
-          <div class="content node" id="panel-node-two" style="opacity:0.2;">
-            <div class="entity">
-              <h3>Node 2</h3>
-              <div class="row row-cols-1">
-                <div class="col-xs-6">
-                  <div class="box-title noselect node-internal-title" id="node-two-bids-title">Masked Bids</div>
-                  <canvas id="node-two-bids" style="width:100%; height:40px;"></canvas>
-                  <div class="box-title noselect node-internal-title" id="node-two-share-title">Secret Share of Outcome</div>
-                  <canvas id="node-two-share" style="width:100%; height:25px;"></canvas>
+          <div class="panel">
+            <div class="entity node" id="node-1">
+              <div>
+                <div><h3>Node 1</h3></div>
+                <div>
+                  <div>
+                    <h4 class="noselect" id="node-1-bids-title">Masked Bids</h4>
+                    <div class="bytes" id="bid-masked-0-at-node-1"></div>
+                    <div class="bytes" id="bid-masked-1-at-node-1"></div>
+                    <div class="bytes" id="bid-masked-2-at-node-1"></div>
+                    <div class="bytes" id="bid-masked-3-at-node-1"></div>
+                  </div>
+                </div>
+                <div>
+                  <div>
+                    <h4 class="noselect" id="node-1-share-title">Secret Share of Outcome</h4>
+                    <div class="bytes" id="share-at-node-1"></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div class="grid-col">
-          <div class="content node" id="panel-node-three" style="opacity:0.2;">
-            <div class="entity">
-              <h3>Node 3</h3>
-              <div class="row row-cols-1">
-                <div class="col-xs-6">
-                  <div class="box-title noselect node-internal-title"id="node-three-bids-title">Masked Bids</div>
-                  <canvas id="node-three-bids" style="width:100%; height:40px;"></canvas>
-                  <div class="box-title noselect node-internal-title"id="node-three-share-title">Secret Share of Outcome</div>
-                  <canvas id="node-three-share" style="width:100%; height:25px;"></canvas>
+          <div class="panel">
+            <div class="entity node" id="node-2">
+              <div>
+                <div><h3>Node 2</h3></div>
+                <div>
+                  <div>
+                    <h4 class="noselect" id="node-2-bids-title">Masked Bids</h4>
+                    <div class="bytes" id="bid-masked-0-at-node-2"></div>
+                    <div class="bytes" id="bid-masked-1-at-node-2"></div>
+                    <div class="bytes" id="bid-masked-2-at-node-2"></div>
+                    <div class="bytes" id="bid-masked-3-at-node-2"></div>
+                  </div>
+                </div>
+                <div>
+                  <div>
+                    <h4 class="noselect" id="node-2-share-title">Secret Share of Outcome</h4>
+                    <div class="bytes" id="share-at-node-2"></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="grid-row grid-row-connectors">
+      <div class="grid-row grid-row-diagram">
         <div class="grid-col"></div>
         <div class="grid-col">
-          <canvas id="canvas-nodes-to-output"></canvas>
+          <div id="diagram-output"></div>
         </div>
       </div>
-      <div class="grid-row grid-row-result">
+      <div class="grid-row grid-row-recipient">
         <div class="grid-col">
-          <div class="guide" id="step-output" style="opacity:0.2;">
+          <div class="step" id="step-recipient">
             <ol start="3">
               <li>
                 <div>
@@ -436,15 +472,13 @@
           </div>
         </div>
         <div class="grid-col">
-          <div class="content" id="panel-output" style="opacity:0.2;">
-            <div class="entity">
-              <div style="display:table; height:100%; width:100%;">
-                <div style="display:table-row;">
-                  <h3>Network Output</h3>
-                </div>
-                <div style="display:table-row;">
-                  <div style="display:table-cell; width:100%; vertical-align:middle;">
-                    <div id="result-bar"></div>
+          <div class="panel">
+            <div class="entity client recipient" id="recipient">
+              <div>
+                <div><h3>Network Output</h3></div>
+                <div>
+                  <div>
+                    <div id="recipient-output"></div>
                   </div>
                 </div>
               </div>
@@ -453,14 +487,17 @@
         </div>
       </div>
     </div>
-    <div class="space"></div>
+    <div class="footer-spacer"></div>
     <footer>
       <div class="container noselect">
         <div class="card-deck mb-3">
           <div class="card mb-4">
             <div class="card-body card-body-items">
               <div class="card-body-items-left">
-                <span class="item"><span class="license-phrase">Made available under the </span><a href="https://opensource.org/license/mit/">MIT License</a></span>
+                <span class="item">
+                  <span class="license-phrase">Made available under the </span>
+                  <a href="https://opensource.org/license/mit/">MIT License</a>
+                </span>
               </div>
               <div class="card-body-items-right">
                 <span class="icon"><a href="mailto:engineering@nillion.com"><i class="far fa-envelope"></i></a></span>
@@ -475,7 +512,7 @@
       </div>
     </footer>
     <py-config>
-      packages = ["bitlist", "tinybid"]
+      packages = ["tinybid"]
     </py-config>
     <section class="pyscript">
       <py-script>
@@ -484,78 +521,49 @@
         from tinybid import *
 
         bids = [None, None, None, None]
-        bidsForJS = None
-        sharesForJS = None
-
-        def show_contribution(data):
-            lines = []            
-            global broadcast
-            broadcast = [((256 * int(v)) // v.modulus) for (_, v) in data.items()]
-            js.showToken()
 
         def modulo_to_uint8(m):
             return (256 * int(m)) // m.modulus
 
-        def run_if_ready():
-            global bids
-            global bidsForJS
+        def compute_outcome_if_ready():
             if all(bid is not None for bid in bids):
                 shares = [node.outcome(bids) for node in nodes]
-                global sharesForJS
-                sharesForJS = [
-                    modulo_to_uint8(value)
-                    for share in shares
-                    for value in share
-                ]
+                for node_id in range(3):
+                    js.nodeShowShare(
+                        node_id,
+                        [modulo_to_uint8(value) for value in shares[node_id]]
+                    )
                 result = list(sorted(reveal(shares)))
-                js.showShareAtNode('one')
-                js.showShareAtNode('two')
-                js.showShareAtNode('three')
-                js.outputEnable()
-                js.document.getElementById('result-bar').style.color = '#000000'
-                js.document.getElementById('result-bar').style.backgroundColor = '#FFFFFF'
-                js.document.getElementById('result-bar').style.width = '100%'
-                js.document.getElementById('result-bar').innerHTML = \
-                    'Winning bidder(s): ' + (', '.join([str(i + 1) for i in result])) + '.'
+                js.recipientEnable()
+                js.document.getElementById('recipient-output').innerHTML = \
+                    'Winning bidder ID(s): ' + (', '.join([str(i) for i in result])) + '.'
 
-        def make_bid_handler(identifier):
+        def make_bid_handler(bid_id):
 
             def bid_handler(_):
-                request_ = request(identifier=(identifier - 1))
+                request_ = request(identifier=bid_id)
                 masks = [node.masks(request_) for node in nodes]
-                price = js.getBid(identifier)
-                global bids
-                bids[identifier - 1] = bid(masks, price)
-                js.document.getElementById('bid-' + str(identifier)).disabled = True
-                js.sliderDisable('bid-slider-' + str(identifier))
-                js.connectorsBidsToNodes()
-                global bidsForJS
-                bidsForJS = [
-                    (
-                        modulo_to_uint8(list(kv.values())[0])
-                        if not isinstance(kv, int) else
-                        kv
-                    )
-                    for bid in bids
-                    for kv in (bid if bid is not None else range(16))
-                ]
+                price = js.clientGetPriceAndDisable(bid_id)
+                bids[bid_id] = bid(masks, price)
+                js.diagramInputUpdate()
                 js.nodesEnable()
-                js.showBidsAtNode('one')
-                js.showBidsAtNode('two')
-                js.showBidsAtNode('three')
-                run_if_ready()
+                for node_id in range(3):
+                    js.nodeShowBidMasked(
+                        bid_id, node_id,
+                        [modulo_to_uint8(list(d.values())[0]) for d in bids[bid_id]]
+                    )
+                compute_outcome_if_ready()
 
             return bid_handler
 
         nodes = [node(), node(), node()]
-        preprocess(nodes, bids=4, prices=15) # This maximum *price*...
-        for identifier in [1, 2, 3, 4]:
-            js.document.getElementById('bid-' + str(identifier)).addEventListener(
+        preprocess(nodes, bids=4, prices=15)
+        for bid_id in range(4):
+            js.document.getElementById('bid-' + str(bid_id)).addEventListener(
                 'click',
-                create_proxy(make_bid_handler(identifier))
+                create_proxy(make_bid_handler(bid_id))
             )
       </py-script>
-      <input id="active" type="hidden" value="none"/>
     </section>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
             integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous">
@@ -565,161 +573,164 @@
             integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
     </script>
     <script>
-      let bids = [0, 0, 0, 0];
-      let bidStatus = [false, false, false, false];
-      let bidsSubmitted = false;
-
-      const canvas_bids_to_nodes = document.getElementById("canvas-bids-to-nodes");
-      const context_bids_to_nodes = canvas_bids_to_nodes.getContext("2d");
-      const canvas_nodes_to_output = document.getElementById("canvas-nodes-to-output");
-      const context_nodes_to_output = canvas_nodes_to_output.getContext("2d");
-
-      function vertical(context, x1, y1, x2, y2, color) {
-        context.fillStyle = color;
-        context.fillRect(x1 - 1, y1, x2 - x1 + 2, y2 - y1);
-      }
-
-      function horizontal(context, x1, y1, x2, y2, color) {
-        context.fillStyle = color;
-        context.fillRect(x1 - 1, y1 - 2, x2 - x1 + 2, y2 - y1 + 4);
-      }
-
-      function connectorsBidsToNodes() {
-        if (bidStatus[0] || bidStatus[1] || bidStatus[2] || bidStatus[3]) {
-          let w = canvas_bids_to_nodes.width, h = canvas_bids_to_nodes.height;
-          const offset = 0;
-          if (bidStatus[0]) {
-            vertical(context_bids_to_nodes, (1*w)/8 + offset, 0, (1*w)/8 + offset, (3*h)/4, "#000000");
-          }
-          if (bidStatus[1]) {
-            vertical(context_bids_to_nodes, (3*w)/8 + offset, 0, (3*w)/8 + offset, (3*h)/4, "#000000");
-          }
-          if (bidStatus[2]) {
-            vertical(context_bids_to_nodes, (5*w)/8 + offset, 0, (5*w)/8 + offset, (3*h)/4, "#000000");
-          }
-          if (bidStatus[3]) {
-            vertical(context_bids_to_nodes, (7*w)/8 + offset, 0, (7*w)/8 + offset, (3*h)/4, "#000000");
-          }
-          horizontal(context_bids_to_nodes, w/10 + offset, (3*h)/4, (9*w)/10 + offset, (3*h)/4, "#000000");
-          vertical(context_bids_to_nodes, w/2 + offset, (3*h)/4, w/2 + offset, h, "#000000");
-          vertical(context_bids_to_nodes, w/10 + offset, (3*h)/4, w/10 + offset, h, "#000000");
-          vertical(context_bids_to_nodes, (9*w)/10 + offset, (3*h)/4, (9*w)/10 + offset, h, "#000000");
+      class Diagram {
+        constructor (elementId, height, thickness) {
+          this.element = document.getElementById(elementId);
+          this.height = height;
+          this.thickness = (thickness !== null) ? 2 : thickness;
+          this.shows = {};
+          this.element.style.position = "relative";
+          this.element.style.height = height + "px";
         }
-      }
 
-      function connectorsNodesToOutput() {
-        if (bidsSubmitted) {
-          canvas_nodes_to_output.width = canvas_nodes_to_output.offsetWidth;
-          w = canvas_nodes_to_output.width, h = canvas_nodes_to_output.height;
-
-          vertical(context_nodes_to_output, w/2, 0, w/2, h/2, "#0000FF");
-          vertical(context_nodes_to_output, w/6, 0, w/6, h/2, "#0000FF");
-          vertical(context_nodes_to_output, (5*w)/6, 0, (5*w)/6, h/2, "#0000FF");
-          horizontal(context_nodes_to_output, w/6, h/2, (5*w)/6, h/2, "#0000FF");
-          vertical(context_nodes_to_output, w/2, h/2, w/2, h, "#0000FF");
+        edge (top, elementId, elementIds) {
+          const edge = document.createElement("div");
+          edge.style.position = "absolute";
+          edge.style.top = top + "%";
+          edge.style.border = this.thickness + "px solid var(--color-diagram-edge)";
+          edge.style.opacity = 0;
+          if (elementId !== null) {
+            edge.id = elementId;
+            this.shows[elementId] = (elementIds == null) ? [] : elementIds;
+          }
+          this.element.appendChild(edge);
+          return edge;
         }
-      }
 
-      function nodesEnable() {
-        connectorsNodesToOutput();
-        [
-          "step-nodes", "panel-node-one", "panel-node-two", "panel-node-three"
-        ].map(function(elementId) {
+        vertical (index, total, top, height, elementId, elementIds) {
+          const edge = this.edge(top, elementId, elementIds);
+          edge.style.left = Math.round((100 * (1 + (2 * index))) / (2 * total))  + "%";
+          edge.style.height = height + "%";
+          edge.style.width = 0 + "px";
+        }
+
+        horizontal (total, top, elementId, elementIds) {
+          const edge = this.edge(top, elementId, elementIds);
+          const denom = 2 * total, left = Math.round(100 / denom);
+          edge.style.left = left + "%";
+          edge.style.height = 0 + "px";
+          edge.style.width = "calc(" +
+            this.thickness + "px + " + Math.round(100 - (100 / denom) - left) +
+          "%)";
+        }
+
+        show(elementId) {
           document.getElementById(elementId).style.opacity = 1;
-        });
-      }
-
-      function outputEnable() {
-        bidsSubmitted = true;
-        connectorsNodesToOutput();
-        [
-          "step-output", "panel-output"
-        ].map(function(elementId) {
-          document.getElementById(elementId).style.opacity = 1;
-        });
-      }
-
-      function showBidsAtNode(nodeName) {
-        $("#node-" + nodeName + "-bids-title").show();
-        let bids = Array.from(pyscript.interpreter.globals.get("bidsForJS"));
-        let canvas = document.getElementById("node-" + nodeName + "-bids");
-        let context = canvas.getContext("2d");
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-        let w = canvas.width, h = canvas.height;
-        let pixelWidth = (h / 16) * 3.72 * (1.6 * canvas.width / 242), pixelHeight = 6;
-        let opacity = 1;
-        for (let row = 0; row < 4; row++) {
-          for (let i = 0; i < 16; i++) {
-            context.fillStyle = (
-              "rgba(255, 255, 255, " +
-              (opacity * ((bidStatus[row] ? 1 : 0) * (bids[(row * 16) + i] / 256))) +
-              ")"
-            );
-            context.fillRect(
-              i * pixelWidth,
-              row * (pixelHeight + 5),
-              pixelWidth,
-              pixelHeight
-            );
+          if (elementId in this.shows) {
+            for (let i = 0; i < this.shows[elementId].length; i++) {
+              this.show(this.shows[elementId][i]);
+            }
           }
         }
       }
 
-      function showShareAtNode(nodeName) {
-        $("#node-" + nodeName + "-share-title").show();
-        let nodeIndex = (nodeName == 'one' ? 1 : ((nodeName == 'two' ? 2 : 3))) - 1;
-        let shares = Array.from(pyscript.interpreter.globals.get("sharesForJS"));
-        let canvas = document.getElementById("node-" + nodeName + "-share");
-        let context = canvas.getContext("2d");
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-        let w = canvas.width, h = canvas.height;
-        let pixelWidth = (h / 16) * 6 * (1.6 * canvas.width / 242), pixelHeight = 6;
-        let opacity = 1;
-        for (let i = 0; i < 16; i++) {
-          context.fillStyle = "rgba(255, 255, 255, " + (opacity * (shares[(nodeIndex * 16) + i] / 256)) + ")";
-          context.fillRect(i * pixelWidth, 0, pixelWidth, pixelHeight);
+      function showBytes(elementId, array) {
+        const bytes = document.getElementById(elementId);
+        bytes.classList.add("bytes");
+        bytes.style.backgroundColor = "#FFFFFF";
+        const table = document.createElement("table");
+        table.style.width = "100%";
+        const tr = document.createElement("tr");
+        for (let i = 0; i < array.length; i++) {
+          const td = document.createElement("td");
+          td.style.backgroundColor = "rgb(" + array[i] + "," + array[i] + "," + array[i] + ")";
+          tr.appendChild(td);
         }
+        table.appendChild(tr);
+        bytes.appendChild(table);
       }
 
-      function sliderDisable(identifier) {
-        $("#" + identifier).slider("disable");
-      }
-
-      function getBid(identifier) {
-        bidStatus[identifier - 1] = true;
-        return bids[identifier - 1];
+      function setOpacities(opacity, elementIds) {
+        elementIds.map(function(elementId) {
+          document.getElementById(elementId).style.opacity = opacity;
+        });
       }
 
       async function initialize() {
-        for (let bidderIndex = 1; bidderIndex <= 4; bidderIndex++) {
-          const value = Math.floor(Math.random() * 16);
-          bids[bidderIndex - 1] = value;
-          document.getElementById("bid-slider-" + bidderIndex + "-value").innerHTML = value;
+        setOpacities(0, [
+            "node-0-bids-title", "node-0-share-title",
+            "node-1-bids-title", "node-1-share-title",
+            "node-2-bids-title", "node-2-share-title"
+        ]);
+        setOpacities(0.2, [
+            "step-nodes", "node-0", "node-1", "node-2",
+            "step-recipient", "recipient"
+        ]);
+
+        diagramInput = new Diagram("diagram-input", 100);
+        diagramInput.vertical(0, 4, 0, 50, "it0", ["ih"]);
+        diagramInput.vertical(1, 4, 0, 50, "it1", ["ih"]);
+        diagramInput.vertical(2, 4, 0, 50, "it2", ["ih"]);
+        diagramInput.vertical(3, 4, 0, 50, "it3", ["ih"]);
+        diagramInput.horizontal(9, 50, "ih", ["ib0", "ib1", "ib2"]);
+        diagramInput.vertical(0, 9, 50, 50, "ib0");
+        diagramInput.vertical(4, 9, 50, 50, "ib1");
+        diagramInput.vertical(8, 9, 50, 50, "ib2");
+
+        diagramOutput = new Diagram("diagram-output", 100);
+        diagramOutput.vertical(0, 3, 0, 50, "ot0");
+        diagramOutput.vertical(1, 3, 0, 50, "ot1");
+        diagramOutput.vertical(2, 3, 0, 50, "ot2");
+        diagramOutput.horizontal(3, 50, "oh");
+        diagramOutput.vertical(0, 1, 50, 50, "ob0");
+
+        for (let bidId = 0; bidId < 4; bidId++) {
+          const price = Math.floor(Math.random() * 16);
+          bids[bidId].price = price;
+          document.getElementById("bid-price-" + bidId).innerHTML = price;
           $(function() {
-            $("#bid-slider-" + bidderIndex).slider({
+            $("#bid-slider-" + bidId).slider({
               orientation: "vertical",
               range: "min",
               min: 0,
               max: 15,
-              value: value,
+              value: price,
               slide: function(event, ui) {
-                document.getElementById("bid-slider-" + bidderIndex + "-value").innerHTML = ui.value;
-                bids[bidderIndex - 1] = ui.value;
+                document.getElementById("bid-price-" + bidId).innerHTML = ui.value;
+                bids[bidId].price = ui.value;
               }
             });
           });
         }
       }
 
-      function resize() {
-        connectorsBidsToNodes();
-        connectorsNodesToOutput();
+      function clientGetPriceAndDisable(bidId) {
+        $("#bid-slider-" + bidId).slider("disable");
+        document.getElementById("bid-" + bidId).disabled = true;
+        bids[bidId].status = true;
+        return bids[bidId].price;
       }
 
+      function diagramInputUpdate() {
+        for (let bidId = 0; bidId < 4; bidId++) {
+          if (bids[bidId].status) {
+            diagramInput.show("it" + bidId);
+          }
+        }
+      }
+
+      function nodesEnable() {
+        setOpacities(1, ["step-nodes", "node-0", "node-1", "node-2"]);
+      }
+
+      function nodeShowBidMasked(bidId, nodeId, data) {
+        setOpacities(1, ["node-" + nodeId + "-bids-title"]);
+        showBytes("bid-masked-" + bidId + "-at-node-" + nodeId, Array.from(data));
+      }
+
+      function nodeShowShare(nodeId, data) {
+        setOpacities(1, ["node-" + nodeId + "-share-title"]);
+        showBytes("share-at-node-" + nodeId, Array.from(data));
+      }
+
+      function recipientEnable() {
+        ["ot0", "ot1", "ot2", "oh", "ob0"].map( function(id) { diagramOutput.show(id); } );
+        setOpacities(1, ["step-recipient", "recipient"]);
+      }
+
+      let bids = [{"price": 0}, {"price": 0}, {"price": 0}, {"price": 0}];
+      let diagramInput = null, diagramOutput = null;
       window.onload = initialize;
-      window.onresize = resize;
     </script>
   </body>
 </html>
