@@ -14,12 +14,11 @@
       docHead.appendChild(newLink);
     </script>
     <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
-    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@300;400;500;700" rel="stylesheet">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.4.2/css/all.css">
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cabin:wght@300;400;500;700" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.5.1/css/all.css" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" 
+          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
     <style>
       /*****************
        * Color scheme. *
@@ -62,6 +61,7 @@
       body {
         display:flex; flex-direction:column;
         min-height:100vh;
+        min-width:500px !important;
         padding:0px 0px 0px 0px;
         background-color:var(--color-background);
         font-family:'Cabin',sans-serif;
@@ -109,7 +109,7 @@
       footer .license-phrase { color:var(--color-footer-text); }
       footer .item { margin:0px 25px 0px 0px; white-space:nowrap; font-size:14px; }
       footer .icon { margin:0px 15px 0px 0px; font-size:20px; }
-      footer .icon-last { margin:0px 0px 0px 0px; font-size:18px; }
+      footer .icon:last-child { margin-right:0px; font-size:18px; }
       .noselect {
         -webkit-touch-callout:none; /* iOS Safari */
           -webkit-user-select:none; /* Safari */
@@ -121,6 +121,7 @@
       }
       @media (min-width: 768px) { html { font-size:16px; } }
       @media all and (max-width:618px) { .header { margin-top:50px; } }
+
 
       /************************************************************
        * Layout for steps and data flow visualization containers. *
@@ -185,11 +186,16 @@
         .entity { padding:10px; }
         h4 { line-height:14px; font-size:12px !important; }
       }
+      @media all and (max-width:575px) {
+        .entity { height:100%; margin-top:0px; }
+        h3 { font-size:14px; }
+        h4 { line-height:12px !important; font-size:10px !important; }
+      }
 
       /**************************************************** 
        * Interactive user interface (UI) common elements. *
        ****************************************************/
-      .array { height:20px; margin:0px 4px 0px 4px; }
+      .array { height:20px; margin:0px 4px 0px 4px; white-space:nowrap; }
       .array > span {
         padding:1px 4px 1px 4px;
         border-top:1px solid var(--color-text);
@@ -198,9 +204,17 @@
         font-size:12px; font-weight:bold;
       }
       .array > span:last-child { border-right:1px solid var(--color-text); }
-      .bytes { height:10px; margin:8px 4px 8px 4px; }
-      .bytes > span { padding-right:24px; font-size:14px; }
+      .bytes { position:relative; height:10px; margin:8px 4px 8px 4px; white-space:nowrap; }
+      .bytes > span {
+        position:relative; top:-2px;
+        padding-right:24px;
+        font-size:14px;
+      }
       .bytes > table { height:100%; width:100%; }
+      @media all and (max-width:539px) {
+        .array > span { font-size:10px; }
+        .bytes > span { font-size:10px; }
+      }
       button {
         width:50px;
         margin:0px 2px 2px 0px;
@@ -238,9 +252,9 @@
         #recipient-output { margin-bottom:6px; line-height:24px; font-size:20px; }
       }
 
-      /**************************************************** 
+      /***************************************************************
        * Interactive user interface (UI) custom layout and elements. *
-       ****************************************************/
+       ***************************************************************/
       .bid-price {
         margin-top:12px; margin-bottom:4px;
         text-align:center;
@@ -501,7 +515,7 @@
               </div>
               <div class="card-body-items-right">
                 <span class="icon"><a href="mailto:engineering@nillion.com"><i class="far fa-envelope"></i></a></span>
-                <span class="icon-last"><a href="https://github.com/nillion-oss"><i class="fab fa-github"></i></a></span>
+                <span class="icon"><a href="https://github.com/nillion-oss"><i class="fab fa-github"></i></a></span>
               </div>
             </div>
           </div>
@@ -512,15 +526,13 @@
       </div>
     </footer>
     <py-config>
-      packages = ["tinybid"]
+      packages = ["tinybid~=0.2"]
     </py-config>
     <section class="pyscript">
       <py-script>
         from pyodide.ffi import create_proxy
         import js
         from tinybid import *
-
-        bids = [None, None, None, None]
 
         def modulo_to_uint8(m):
             return (256 * int(m)) // m.modulus
@@ -556,15 +568,18 @@
 
             return bid_handler
 
+        bids = [None, None, None, None]
+        prices = 15
         nodes = [node(), node(), node()]
-        preprocess(nodes, bids=4, prices=15)
-        for bid_id in range(4):
+        preprocess(nodes, bids=len(bids), prices=prices)
+        for bid_id in range(len(bids)):
             js.document.getElementById('bid-' + str(bid_id)).addEventListener(
                 'click',
                 create_proxy(make_bid_handler(bid_id))
             )
       </py-script>
     </section>
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
             integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous">
     </script>
@@ -614,7 +629,7 @@
           "%)";
         }
 
-        show(elementId) {
+        show (elementId) {
           document.getElementById(elementId).style.opacity = 1;
           if (elementId in this.shows) {
             for (let i = 0; i < this.shows[elementId].length; i++) {
@@ -674,8 +689,8 @@
         diagramOutput.horizontal(3, 50, "oh");
         diagramOutput.vertical(0, 1, 50, 50, "ob0");
 
-        for (let bidId = 0; bidId < 4; bidId++) {
-          const price = Math.floor(Math.random() * 16);
+        for (let bidId = 0; bidId < bids.length; bidId++) {
+          const price = Math.floor(Math.random() * (prices + 1));
           bids[bidId].price = price;
           document.getElementById("bid-price-" + bidId).innerHTML = price;
           $(function() {
@@ -683,7 +698,7 @@
               orientation: "vertical",
               range: "min",
               min: 0,
-              max: 15,
+              max: prices,
               value: price,
               slide: function(event, ui) {
                 document.getElementById("bid-price-" + bidId).innerHTML = ui.value;
@@ -702,7 +717,7 @@
       }
 
       function diagramInputUpdate() {
-        for (let bidId = 0; bidId < 4; bidId++) {
+        for (let bidId = 0; bidId < bids.length; bidId++) {
           if (bids[bidId].status) {
             diagramInput.show("it" + bidId);
           }
@@ -728,7 +743,8 @@
         setOpacities(1, ["step-recipient", "recipient"]);
       }
 
-      let bids = [{"price": 0}, {"price": 0}, {"price": 0}, {"price": 0}];
+      const bids = [{"price": 0}, {"price": 0}, {"price": 0}, {"price": 0}];
+      const prices = 15
       let diagramInput = null, diagramOutput = null;
       window.onload = initialize;
     </script>
