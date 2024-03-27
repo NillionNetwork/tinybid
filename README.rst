@@ -14,12 +14,12 @@ Minimal pure-Python library that implements a basic single-item first-price auct
    :target: https://tinybid.readthedocs.io/en/latest/?badge=latest
    :alt: Read the Docs documentation status.
 
-.. |actions| image:: https://github.com/nillion-oss/tinybid/workflows/lint-test-cover-docs/badge.svg
-   :target: https://github.com/nillion-oss/tinybid/actions/workflows/lint-test-cover-docs.yml
+.. |actions| image:: https://github.com/NillionNetwork/tinybid/workflows/lint-test-cover-docs/badge.svg
+   :target: https://github.com/NillionNetwork/tinybid/actions/workflows/lint-test-cover-docs.yml
    :alt: GitHub Actions status.
 
-.. |coveralls| image:: https://coveralls.io/repos/github/nillion-oss/tinybid/badge.svg?branch=main
-   :target: https://coveralls.io/github/nillion-oss/tinybid?branch=main
+.. |coveralls| image:: https://coveralls.io/repos/github/NillionNetwork/tinybid/badge.svg?branch=main
+   :target: https://coveralls.io/github/NillionNetwork/tinybid?branch=main
    :alt: Coveralls test coverage summary.
 
 Purpose
@@ -214,7 +214,7 @@ Style conventions are enforced using `Pylint <https://pylint.readthedocs.io>`__:
 
 Contributions
 ^^^^^^^^^^^^^
-In order to contribute to the source code, open an issue or submit a pull request on the `GitHub page <https://github.com/nillion-oss/tinybid>`__ for this library.
+In order to contribute to the source code, open an issue or submit a pull request on the `GitHub page <https://github.com/NillionNetwork/tinybid>`__ for this library.
 
 Versioning
 ^^^^^^^^^^

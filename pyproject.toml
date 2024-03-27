@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/nillion-oss/tinybid"
+Repository = "https://github.com/NillionNetwork/tinybid"
 Documentation = "https://tinybid.readthedocs.io"
 
 [project.optional-dependencies]
