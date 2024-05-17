@@ -14,22 +14,20 @@ Minimal pure-Python library that implements a basic single-item first-price auct
    :target: https://tinybid.readthedocs.io/en/latest/?badge=latest
    :alt: Read the Docs documentation status.
 
-.. |actions| image:: https://github.com/NillionNetwork/tinybid/workflows/lint-test-cover-docs/badge.svg
-   :target: https://github.com/NillionNetwork/tinybid/actions/workflows/lint-test-cover-docs.yml
+.. |actions| image:: https://github.com/nillionnetwork/tinybid/workflows/lint-test-cover-docs/badge.svg
+   :target: https://github.com/nillionnetwork/tinybid/actions/workflows/lint-test-cover-docs.yml
    :alt: GitHub Actions status.
 
-.. |coveralls| image:: https://coveralls.io/repos/github/NillionNetwork/tinybid/badge.svg?branch=main
-   :target: https://coveralls.io/github/NillionNetwork/tinybid?branch=main
+.. |coveralls| image:: https://coveralls.io/repos/github/nillionnetwork/tinybid/badge.svg?branch=main
+   :target: https://coveralls.io/github/nillionnetwork/tinybid?branch=main
    :alt: Coveralls test coverage summary.
 
 Purpose
 -------
-
 This library demonstrates how a functionality can be implemented using a `secure multi-party computation (MPC) protocol <https://eprint.iacr.org/2023/1740>`__ for evaluating arithmetic sum-of-products expressions (as implemented in `tinynmc <https://pypi.org/project/tinynmc>`__). The approach used in this library can serve as a template for any workflow that relies on multiple simultaneous instances of such a protocol.
 
 Installation and Usage
 ----------------------
-
 This library is available as a `package on PyPI <https://pypi.org/project/tinybid>`__:
 
 .. code-block:: bash
@@ -47,7 +45,7 @@ Basic Example
 ^^^^^^^^^^^^^
 
 .. |node| replace:: ``node``
-.. _node: https://tinybid.readthedocs.io/en/0.2.0/_source/tinybid.html#tinybid.tinybid.node
+.. _node: https://tinybid.readthedocs.io/en/0.3.0/_source/tinybid.html#tinybid.tinybid.node
 
 Suppose that a workflow is supported by three nodes (parties performing a decentralized auction). The |node|_ objects would be instantiated locally by each of these three parties:
 
@@ -80,7 +78,7 @@ Each bidder can deliver a request to each node, and each node can then locally t
     >>> masks_three = [node.masks(request_three) for node in nodes]
 
 .. |bid| replace:: ``bid``
-.. _bid: https://tinybid.readthedocs.io/en/0.2.0/_source/tinybid.html#tinybid.tinybid.bid
+.. _bid: https://tinybid.readthedocs.io/en/0.3.0/_source/tinybid.html#tinybid.tinybid.bid
 
 Each bidder can then generate locally a |bid|_ instance (*i.e.*, a masked bid price):
 
@@ -122,13 +120,13 @@ Each bidder assembles a list in which the component corresponding to their bid p
 +-------------------------+-------+-------+-------+-------+-------+-------+
 | **possible bid prices** | **0** | **1** | **2** | **3** | **4** | **5** |
 +-------------------------+-------+-------+-------+-------+-------+-------+
-| **bid from bidder 0**   |   1   |   1   |   1   |  2^2  |   1   |   1   |
+| **bid from bidder 0**   | 1     | 1     | 1     | 2^2   | 1     | 1     |
 +-------------------------+-------+-------+-------+-------+-------+-------+
-| **bid from bidder 1**   |   1   |   1   |   1   |   1   |  2^4  |   1   |
+| **bid from bidder 1**   | 1     | 1     | 1     | 1     | 2^4   | 1     |
 +-------------------------+-------+-------+-------+-------+-------+-------+
-| **bid from bidder 2**   |   1   |  2^8  |   1   |   1   |   1   |   1   |
+| **bid from bidder 2**   | 1     | 2^8   | 1     | 1     | 1     | 1     |
 +-------------------------+-------+-------+-------+-------+-------+-------+
-| **bid from bidder 3**   |   1   |   1   |   1   |   1   |  2^16 |   1   |
+| **bid from bidder 3**   | 1     | 1     | 1     | 1     | 2^16  | 1     |
 +-------------------------+-------+-------+-------+-------+-------+-------+
 
 .. |int_bit_length| replace:: ``int.bit_length``
@@ -139,11 +137,11 @@ The overall outcome of the auction can be determined by (1) performing a compone
 +-------------------------+-------+-------+-------+-------+-------------+-------+
 | **possible bid prices** | **0** | **1** | **2** | **3** | **4**       | **5** |
 +-------------------------+-------+-------+-------+-------+-------------+-------+
-| **product**             |   1   |  2^8  |   1   |  2^2  |  2^(4 + 16) |   1   |
+| **product**             | 1     | 2^8   | 1     | 2^2   | 2^(4 + 16)  | 1     |
 +-------------------------+-------+-------+-------+-------+-------------+-------+
-| **exponent**            |   0   |   8   |   0   |   2   |     4 + 16  |   0   |
+| **exponent**            | 0     | 8     | 0     | 2     | 4 + 16      | 0     |
 +-------------------------+-------+-------+-------+-------+-------------+-------+
-| **exponent in binary**  | 00000 | 01000 | 00000 | 00010 |      10100  | 00000 |
+| **exponent in binary**  | 00000 | 01000 | 00000 | 00010 | 10100       | 00000 |
 +-------------------------+-------+-------+-------+-------+-------------+-------+
 
 In order to keep things simple, assume that all bidders have an interest in ensuring that only the winning bids can be determined from the outcome. Under this assumption, the in-the-clear version of the workflow presented above can be modified in a straightforward way to reveal only the winning bidders. In particular, the 1 entries in every list that appear *before* the bid price component are instead replaced by random nonzero field elements (generated locally by the bidder assembling the bid). This ensures that the overall componentwise product hides all bid information other than the winning bid price and the identities of the winning bidders.
@@ -153,22 +151,22 @@ In the table below, *R* is a placeholder symbol representing various random fiel
 +-------------------------+-------+-------+-------+-------+-------------+-------+
 | **possible bid prices** | **0** | **1** | **2** | **3** | **4**       | **5** |
 +-------------------------+-------+-------+-------+-------+-------------+-------+
-| **bid from bidder 0**   |  *R*  |  *R*  |  *R*  |  2^2  |   1         |   1   |
+| **bid from bidder 0**   | *R*   | *R*   | *R*   | 2^2   | 1           | 1     |
 +-------------------------+-------+-------+-------+-------+-------------+-------+
-| **bid from bidder 1**   |  *R*  |  *R*  |  *R*  |  *R*  |  2^4        |   1   |
+| **bid from bidder 1**   | *R*   | *R*   | *R*   | *R*   | 2^4         | 1     |
 +-------------------------+-------+-------+-------+-------+-------------+-------+
-| **bid from bidder 2**   |  *R*  |  2^8  |   1   |   1   |   1         |   1   |
+| **bid from bidder 2**   | *R*   | 2^8   | 1     | 1     | 1           | 1     |
 +-------------------------+-------+-------+-------+-------+-------------+-------+
-| **bid from bidder 3**   |  *R*  |  *R*  |  *R*  |  *R*  |  2^16       |   1   |
+| **bid from bidder 3**   | *R*   | *R*   | *R*   | *R*   | 2^16        | 1     |
 +-------------------------+-------+-------+-------+-------+-------------+-------+
-| **product**             |  *R*  |  *R*  |  *R*  |  *R*  |  2^(4 + 16) |   1   |
+| **product**             | *R*   | *R*   | *R*   | *R*   | 2^(4 + 16)  | 1     |
 +-------------------------+-------+-------+-------+-------+-------------+-------+
 
 .. |tinynmc_node| replace:: ``node``
-.. _tinynmc_node: https://tinynmc.readthedocs.io/en/0.2.0/_source/tinynmc.html#tinynmc.tinynmc.node
+.. _tinynmc_node: https://tinynmc.readthedocs.io/en/0.3.0/_source/tinynmc.html#tinynmc.tinynmc.node
 
 .. |tinybid_node| replace:: ``node``
-.. _tinybid_node: https://tinybid.readthedocs.io/en/0.2.0/_source/tinybid.html#tinybid.tinybid.node
+.. _tinybid_node: https://tinybid.readthedocs.io/en/0.3.0/_source/tinybid.html#tinybid.tinybid.node
 
 Each component of the overall product is calculated using a distinct instance of the protocol implemented by `tinynmc <https://pypi.org/project/tinynmc>`__. This is accomplished by maintaining multiple distinct `tinynmc <https://pypi.org/project/tinynmc>`__ |tinynmc_node|_ objects (one for each possible bid price) inside each `tinybid <https://pypi.org/project/tinybid>`__ |tinybid_node|_ object. In this way, the bid information is protected both from the auction operator (thanks to the random field elements) and from the nodes (thanks to masking via the `MPC protocol <https://eprint.iacr.org/2023/1740>`__).
 
@@ -214,7 +212,7 @@ Style conventions are enforced using `Pylint <https://pylint.readthedocs.io>`__:
 
 Contributions
 ^^^^^^^^^^^^^
-In order to contribute to the source code, open an issue or submit a pull request on the `GitHub page <https://github.com/NillionNetwork/tinybid>`__ for this library.
+In order to contribute to the source code, open an issue or submit a pull request on the `GitHub page <https://github.com/nillionnetwork/tinybid>`__ for this library.
 
 Versioning
 ^^^^^^^^^^
